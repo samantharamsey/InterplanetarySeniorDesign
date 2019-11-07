@@ -1,1 +1,1 @@
-# Interplanetary_Senior_Design
+# InterplanetarySeniorDesign
