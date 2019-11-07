@@ -57,14 +57,14 @@ v = np.linspace(0, np.pi, 21)
 x = 60268 * np.outer(np.cos(u), np.sin(v))
 y = 60268 * np.outer(np.sin(u), np.sin(v))
 z = 5436.4 * np.outer(np.ones(np.size(u)), np.cos(v))
-ax.plot_surface(x, y, z, rstride=3, cstride=3, color='blue', shade=0)
+ax.plot_surface(x, y, z, rstride = 3, cstride = 3, color = 'blue', shade = 0)
 
 def rotate(angle):
     ax.view_init(azim = angle)
 
 rot_animation = animation.FuncAnimation(fig, rotate, 
-                                        frames=np.arange(0, 362, 2), 
-                                        interval=100)
+                                        frames = np.arange(0, 362, 2), 
+                                        interval = 100)
 
 ################################## VARIABLES ##################################
 
