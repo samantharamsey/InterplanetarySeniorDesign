@@ -66,40 +66,55 @@ rot_animation = animation.FuncAnimation(fig, rotate,
                                         frames=np.arange(0, 362, 2), 
                                         interval=100)
 
-################################# DO THE MATH #################################
+################################## VARIABLES ##################################
 
 # Saturn gravitational parameter
 mu = 37.931*10**6 # km^3/s^2
 
-# Random value for velocity of the spacecraft when it reaches Titan
-vp = 5.393 #km/s
-
-# Enceladus' orbital distance from Saturn
-vi = 238037 #km
+# Enceladus Values
+r_encel = 238037 #km
 encel_ecc = 0.0047
 
-# Compute r when the spacecraft reaches Titan
-# Not necessarily the same as Titans perigee radius
-# Dependant on first value of utc defined above
-# Equal to the center of Titan, need to adjust to Titan's SOI
-titan_rp = np.linalg.norm(titan_pos[0]) #km
+# Titan Values
+r_titan = np.linalg.norm(titan_pos[0]) #km
 titan_ecc = 0.02
 
-h = vp*titan_rp 
-E = (1/2)*vp**2 - (mu/titan_rp)
-
-def f(vars):
-    vi, ri, gamma = vars
-    eq1 = (1/2)*vi**2 - (mu/ri)
-    eq2 = vi*ri*np.cos(gamma)
-    return [eq1, eq2]
+# vi - velocity when the spacecraft reaches titan, want to solve for various
+#      values of vi
+# ri - radius with respect to saturn when the spacecraft reaches titan
+# vp - velocity after gravity assist maneuver
+# rp - radius after the gravity assist - need to find ri's that are less than
+#      the orbital radius of enceladus
 
 gamma = np.arange(0, 2*np.pi, 5*(180/np.pi))
-sol = []
-for i in gamma:
-    x, y =  fsolve(f, (1, 1, i))
-    sol.append(x, y)  
-print(sol)
+vi = np.arange(1, 10, 1000)
+ri = r_titan
+
+################################# DO THE MATH #################################
+
+def f(vars):
+    
+    gamma = np.arange(0, 2*np.pi, 5*(180/np.pi)) # array of flight path angles
+    mu = 37.931*10**6 # saturns gravitational parameter
+    vi = np.arange(1, 10, 1000) # array of arrival velocities
+    ri = 1186780.3668940281 # titans orbital radius
+
+    E = (1/2)*vi**2 - (mu/ri)
+    H = vi*ri*np.cos(gamma)
+    
+    vp, rp = vars
+    eq1 = (1/2)*vp**2 - (mu/rp) - E
+    eq2 = vp*rp - H
+    
+    return (eq1, eq2)
+
+x, y =  fsolve(f, (1, 1))
+
+#sol = []
+#for i in gamma:
+#    x, y =  fsolve(f, (1, 1, i))
+#    sol.append(x, y)  
+#print(sol)
 
 # Want the spacecraft to cross Enceladus' orbit when it is actually there
 # Worry about redevous timing later
