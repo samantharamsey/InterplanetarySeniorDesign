@@ -92,11 +92,19 @@ ri = r_titan
 
 ################################# DO THE MATH #################################
 
-def f(vars):
+def equations(vars):
+    '''
+    Defining simultaneous equations with multiple 
+    unknowns to solve for rp and vp
+    Args:
+        vars - single input for unknown variables
+    Returns:
+        tuple of equations
+    '''
     
-    gamma = np.arange(0, 2*np.pi, 5*(180/np.pi)) # array of flight path angles
+    gamma = np.linspace(0, 2*np.pi, 5*(np.pi/180)) # flight path angle array
     mu = 37.931*10**6 # saturns gravitational parameter
-    vi = np.arange(1, 10, 1000) # array of arrival velocities
+    vi = np.linspace(1, 10, 1000) # array of arrival velocities
     ri = 1186780.3668940281 # titans orbital radius
 
     E = (1/2)*vi**2 - (mu/ri)
@@ -108,13 +116,9 @@ def f(vars):
     
     return (eq1, eq2)
 
-x, y =  fsolve(f, (1, 1))
+x, y =  fsolve(equations, (1, 1))
 
-#sol = []
-#for i in gamma:
-#    x, y =  fsolve(f, (1, 1, i))
-#    sol.append(x, y)  
-#print(sol)
+#################################### NOTES ####################################
 
 # Want the spacecraft to cross Enceladus' orbit when it is actually there
 # Worry about redevous timing later
@@ -127,9 +131,6 @@ x, y =  fsolve(f, (1, 1))
 # Need to take into consideration the time of flight between rp and ri and then
 # find the orbit that allows for most frequent flybys of Enceladus
 # Save redevous for later
-
-
-
 
 # clock angle - what is the angle between the line between saturn and titand 
 # periapse around titan at the flyby
