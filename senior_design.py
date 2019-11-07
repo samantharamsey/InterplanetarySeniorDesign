@@ -86,8 +86,8 @@ titan_ecc = 0.02
 # rp - radius after the gravity assist - need to find ri's that are less than
 #      the orbital radius of enceladus
 
-gamma = np.arange(0, 2*np.pi, 5*(180/np.pi))
-vi = np.arange(1, 10, 1000)
+gamma = np.linspace(0, 2*np.pi, 1000)
+vi = np.linspace(1, 10, 1000)
 ri = r_titan
 
 ################################# DO THE MATH #################################
@@ -98,17 +98,16 @@ def equations(vars):
     unknowns to solve for rp and vp
     Args:
         vars - single input for unknown variables
-    Returns:
-        tuple of equations
     '''
     
-    gamma = np.linspace(0, 2*np.pi, 5*(np.pi/180)) # flight path angle array
+    gamma = np.linspace(0, 2*np.pi, 1000) # flight path angle array
     mu = 37.931*10**6 # saturns gravitational parameter
     vi = np.linspace(1, 10, 1000) # array of arrival velocities
     ri = 1186780.3668940281 # titans orbital radius
 
     E = (1/2)*vi**2 - (mu/ri)
-    H = vi*ri*np.cos(gamma)
+    for i in vi:
+        H = i*ri*np.cos(gamma)
     
     vp, rp = vars
     eq1 = (1/2)*vp**2 - (mu/rp) - E
