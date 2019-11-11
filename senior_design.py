@@ -79,43 +79,44 @@ encel_ecc = 0.0047
 r_titan = np.linalg.norm(titan_pos[0]) #km
 titan_ecc = 0.02
 
-# vi - velocity when the spacecraft reaches titan, want to solve for various
-#      values of vi
-# ri - radius with respect to saturn when the spacecraft reaches titan
-# vp - velocity after gravity assist maneuver
-# rp - radius after the gravity assist - need to find ri's that are less than
-#      the orbital radius of enceladus
-
-gamma = np.linspace(0, 2*np.pi, 1000)
-vi = np.linspace(1, 10, 1000)
-ri = r_titan
-
 ################################# DO THE MATH #################################
 
-def equations(vars):
+gamma = np.linspace(0, 2*np.pi, 1000) # flight path angle array
+mu = 37.931*10**6 # saturns gravitational parameter
+v1 = np.linspace(1, 10, 1000) # array of spacecraft velocities post flyby
+r1 = 1186780.3668940281 # titans orbit radius / radius of spacecraft post flyby
+    
+E = (1/2)*v1**2 - (mu/r1)
+for i in v1:
+    H = i*r1*np.cos(gamma)
+        
+var = np.concatenate(([H], [E]))
+
+def equations(p, h, e):
     '''
     Defining simultaneous equations with multiple 
     unknowns to solve for rp and vp
     Args:
-        vars - single input for unknown variables
+        p - single input for unknown variables
+        h - angular momentum (H)
+        e - energy (E)
     '''
     
-    gamma = np.linspace(0, 2*np.pi, 1000) # flight path angle array
-    mu = 37.931*10**6 # saturns gravitational parameter
-    vi = np.linspace(1, 10, 1000) # array of arrival velocities
-    ri = 1186780.3668940281 # titans orbital radius
-
-    E = (1/2)*vi**2 - (mu/ri)
-    for i in vi:
-        H = i*ri*np.cos(gamma)
+    vp, rp = p
+    eq1 = (1/2)*vp**2 - (mu/rp) - e
+    eq2 = vp*rp - h
     
-    vp, rp = vars
-    eq1 = (1/2)*vp**2 - (mu/rp) - E
-    eq2 = vp*rp - H
-    
-    return (eq1, eq2)
+    return eq1, eq2
 
-x, y =  fsolve(equations, (1, 1))
+# NEED TO UPDATE THIS SO IT SOLVES ALL POSSIBLE COMBINATIONS OF i[0] AND i[1]
+vp = []
+rp = []
+
+for i in var:
+    x, y =  fsolve(equations, (1, 1), (i[0], i[1]))
+    vp.append(x)
+    rp.append(y)
+
 
 #################################### NOTES ####################################
 
@@ -154,11 +155,3 @@ x, y =  fsolve(equations, (1, 1))
 # anderson slides
 
 # adam.r.harden@nasa.gov
-
-
-
-
-
-
-
-
