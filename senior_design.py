@@ -5,6 +5,7 @@ Created on Mon Nov  4 21:06:57 2019
 @author: sam
 '''
 
+import pandas as pd
 import numpy as np
 import spiceypy as spice
 import matplotlib.pyplot as plt
@@ -52,7 +53,7 @@ ax  = fig.add_subplot(111, projection='3d')
 ax.plot(titan_posa[0], titan_posa[1], titan_posa[2])
 ax.plot(encel_posa[0], encel_posa[1], encel_posa[2])
 
-u = np.linspace(0, 2 * np.pi, 39)
+u = np.linspace(0, 2*np.pi, 39)
 v = np.linspace(0, np.pi, 21)
 x = 60268 * np.outer(np.cos(u), np.sin(v))
 y = 60268 * np.outer(np.sin(u), np.sin(v))
@@ -81,16 +82,29 @@ titan_ecc = 0.02
 
 ################################# DO THE MATH #################################
 
-gamma = np.linspace(0, 2*np.pi, 1000) # flight path angle array
+gamma = np.linspace(0, 2*np.pi, 72) # flight path angle array
 mu = 37.931*10**6 # saturns gravitational parameter
-v1 = np.linspace(1, 10, 1000) # array of spacecraft velocities post flyby
+v1 = np.linspace(4, 6, 100) # array of spacecraft velocities post flyby
 r1 = 1186780.3668940281 # titans orbit radius / radius of spacecraft post flyby
     
-E = (1/2)*v1**2 - (mu/r1)
+E = (1/2)*v1**2 - (mu/r1) # energy equation
+H = []
 for i in v1:
-    H = i*r1*np.cos(gamma)
+    for j in gamma:
+        Hj = i*r1*np.cos(j) # specific angular momentum
+        H.append(Hj)
+
+# create lists with all possible combinations 
+newi = []
+newj = []
+for i in E:
+    for j in H:
+        new_i = i
+        new_j = j
+        newi.append(new_i)
+        newj.append(new_j)
         
-var = np.concatenate(([H], [E]))
+var = np.concatenate(([newi], [newj]))
 
 def equations(p, h, e):
     '''
@@ -103,20 +117,20 @@ def equations(p, h, e):
     '''
     
     vp, rp = p
-    eq1 = (1/2)*vp**2 - (mu/rp) - e
+    eq1 = (1/2)*(vp**2) - (mu/rp) - e
     eq2 = vp*rp - h
     
     return eq1, eq2
 
-# NEED TO UPDATE THIS SO IT SOLVES ALL POSSIBLE COMBINATIONS OF i[0] AND i[1]
 vp = []
 rp = []
-
-for i in var:
-    x, y =  fsolve(equations, (1, 1), (i[0], i[1]))
-    vp.append(x)
-    rp.append(y)
-
+for i in range(0, len(var[0])):
+#    x, y =  fsolve(equations, (1, 1), (var[0][i], var[1][i]))
+    print(i)
+    vp.append(y)
+    rp.append(x)
+    
+df = pd.DataFrame({'vp': vp, 'rp': rp})
 
 #################################### NOTES ####################################
 
