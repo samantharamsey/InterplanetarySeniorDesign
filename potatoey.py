@@ -1,7 +1,5 @@
 import pandas as pd
 import numpy as np
-import math
-import spiceypy as spice
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.optimize import fsolve
