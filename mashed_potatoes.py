@@ -40,17 +40,18 @@ data = pd.DataFrame([]) # initialize an empty dataframe
 for i in gamma:
     
     mu = 37.931*10**6 # saturns gravitational parameter
+    saturn_equatorial = 60268 # km
+    saturn_polar = 54364 # km
+    
     r1 = 1.2*10**6 # titans orbit radius / radius of spacecraft post flyby
     r_encel = 238000 #km
     rp_max = r_encel + 1
     
-    saturn_equatorial = 60268
-    saturn_polar = 54364
-    r_min = 70000 #km
+    r_min = 70000 # km
     rp_min = r_min + 1
+    
     e_max = 2
     e_min = 2
-    iteration = 1
     
     if 0 < i < 90 or 270 < i < 360:
         v1_max = 7.94 #km/s 
@@ -61,6 +62,7 @@ for i in gamma:
             v1_max = v1_max - 0.01
             vp_max, rp_max = vprp(i, v1_max)
             
+            # print some stuff to see progress
             print('%-13s %-20s %-20s %-20s'  
               %('v1', 'gamma', 'vp', 'rp'))
             print('%5.1f %20.10f %20.10f %20.10f' 
@@ -70,7 +72,6 @@ for i in gamma:
             H_max = vp_max*rp_max # specific angular momentum
             a_max = -mu/(2*E_max)
             e_max = (a_max - rp_max)/a_max
-        print('done w max')
             
         # calculate the minimums
         while rp_min > r_min or e_min >= 1.0:
@@ -106,8 +107,6 @@ for i in gamma:
             a_min = -mu/(2*E_min)
             e_min = (a_min - rp_min)/a_min
     
-    print('iterations: ' + str(iteration))
-    iteration = iteration + 1
     
     data = data.append(pd.DataFrame({'gamma (deg)': i, 
                                      'v1 max': abs(v1_max),
@@ -130,6 +129,7 @@ data.to_csv(r'C:\Users\saman\OneDrive\Desktop\potato.csv', index = False)
 
 ax = plt.subplot(111, polar = True)
 ax.set_theta_zero_location("N")
+ax.set_theta_direction(-1)
 ax.plot(data['gamma (deg)'][:64]*(np.pi/180), data['v1 max'][:64], c = 'green')
 ax.plot(data['gamma (deg)'][63:77]*(np.pi/180), data['v1 max'][63:77], c = 'orange')
 ax.plot(data['gamma (deg)'][76:104]*(np.pi/180), data['v1 max'][76:104], c = 'red')
@@ -145,8 +145,9 @@ ax.plot(data['gamma (deg)'][75:104]*(np.pi/180), data['v1 min'][75:104], c = 're
 ax.plot(data['gamma (deg)'][103:256]*(np.pi/180), data['v1 min'][103:256], c = 'blue')
 ax.plot(data['gamma (deg)'][255:284]*(np.pi/180), data['v1 min'][255:284], c = 'red')
 ax.plot(data['gamma (deg)'][283:]*(np.pi/180), data['v1 min'][283:], c = 'blue')
-plt.title('Family of v1 Velocity Vectors')
-plt.legend(['Good Trajectories', 'OK Trajectories - Hitting Escape Velocity Constraint', 
+plt.title('Family of v1 Velocity Vectors wrt Saturn')
+plt.legend(['Good Trajectories - r_p about equal to r_enceladus', 
+            'OK Trajectories - Hitting Escape Velocity Constraint', 
             'Bad Trajectories - Perigee Radius Smaller than Saturns Radius',
             'Minimum Required Velocity'], loc = 8)
 plt.show()
