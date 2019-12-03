@@ -30,6 +30,8 @@ def main():
     rp = mu_venus/v_inf**2 * (1/(n.sin(delta/2)) - 1)
     print("rp =", rp)
 
+    """example 2"""
+
 
 if __name__ == '__main__':
     main()
