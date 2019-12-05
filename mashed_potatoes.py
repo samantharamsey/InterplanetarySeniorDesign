@@ -134,7 +134,7 @@ for i in gamma:
                                      'min momentum': H_min},
                                      index = [0]), ignore_index = True)
     
-data.to_csv(r'C:\Users\saman\OneDrive\Desktop\senior_design\potato.csv', index = False)
+#data.to_csv(r'C:\Users\saman\OneDrive\Desktop\senior_design\potato.csv', index = False)
 
 # wrt Saturn
 vx_max = data['v1 max']*np.sin(data['gamma (deg)']*(np.pi/180))
@@ -153,35 +153,46 @@ new_vymin = vy_min - v_titan
 
 vmax = []
 vmin = []
+max_fpa = []
+min_fpa = []
+
 for i in range(360):
     vmax_titan = np.linalg.norm([vx_max[i], new_vymax[i], vz_max[i]])
     vmax.append(vmax_titan)
     vmin_titan = np.linalg.norm([vx_min[i], new_vymin[i], vz_min[i]])
     vmin.append(vmin_titan)
+
     
 data.insert(2, 'v1 max wrt Titan', vmax, True)
 data.insert(3, 'v1 min wrt Titan', vmin, True)
+
+titan_fpa_max = np.arctan2(vx_max, new_vymax)
+titan_fpa_min = np.arctan2(vx_min, new_vymin)
+
+data.insert(4, 'Titan max fpa', titan_fpa_max*(180/np.pi), True)
+data.insert(5, 'Titan min fpa', titan_fpa_min*(180/np.pi), True)
+
 
 f1 = plt.figure()
 ax1 = f1.add_subplot(111, polar = True)
 ax1.set_theta_zero_location("N")
 ax1.set_theta_direction(-1)
-ax1.plot(data['gamma (deg)'][:64]*(np.pi/180), data['v1 max wrt Titan'][:64], c = 'green')
-ax1.plot(data['gamma (deg)'][63:77]*(np.pi/180), data['v1 max wrt Titan'][63:77], c = 'orange')
-ax1.plot(data['gamma (deg)'][:76]*(np.pi/180), data['v1 min wrt Titan'][:76], c = 'blue')
-ax1.plot(data['gamma (deg)'][76:104]*(np.pi/180), data['v1 max wrt Titan'][76:104], c = 'red')
-ax1.plot(data['gamma (deg)'][75:104]*(np.pi/180), data['v1 min wrt Titan'][75:104], c = 'red')
-ax1.plot(data['gamma (deg)'][103:116]*(np.pi/180), data['v1 max wrt Titan'][103:116], c = 'orange')
-ax1.plot(data['gamma (deg)'][115:244]*(np.pi/180), data['v1 max wrt Titan'][115:244], c = 'green')
-ax1.plot(data['gamma (deg)'][103:256]*(np.pi/180), data['v1 min wrt Titan'][103:256], c = 'blue')
-ax1.plot(data['gamma (deg)'][243:257]*(np.pi/180), data['v1 max wrt Titan'][243:257], c = 'orange')
-ax1.plot(data['gamma (deg)'][256:284]*(np.pi/180), data['v1 max wrt Titan'][256:284], c = 'red')
-ax1.plot(data['gamma (deg)'][255:284]*(np.pi/180), data['v1 min wrt Titan'][255:284], c = 'red')
-ax1.plot(data['gamma (deg)'][283:296]*(np.pi/180), data['v1 max wrt Titan'][283:296], c = 'orange')
-ax1.plot(data['gamma (deg)'][295:]*(np.pi/180), data['v1 max wrt Titan'][295:], c = 'green')
-ax1.plot(data['gamma (deg)'][283:]*(np.pi/180), data['v1 min wrt Titan'][283:], c = 'blue')
-ax1.fill_between(data['gamma (deg)'][::]*(np.pi/180), data['v1 max wrt Titan'][::], 
-                     data['v1 min wrt Titan'][::], facecolor='green', alpha=0.2)
+ax1.plot(data['Titan max fpa'][:64]*(np.pi/180), data['v1 max wrt Titan'][:64], c = 'green')
+ax1.plot(data['Titan max fpa'][63:77]*(np.pi/180), data['v1 max wrt Titan'][63:77], c = 'orange')
+ax1.plot(data['Titan min fpa'][:76]*(np.pi/180), data['v1 min wrt Titan'][:76], c = 'blue')
+ax1.plot(data['Titan max fpa'][76:104]*(np.pi/180), data['v1 max wrt Titan'][76:104], c = 'red')
+ax1.plot(data['Titan min fpa'][75:104]*(np.pi/180), data['v1 min wrt Titan'][75:104], c = 'red')
+ax1.plot(data['Titan max fpa'][103:116]*(np.pi/180), data['v1 max wrt Titan'][103:116], c = 'orange')
+ax1.plot(data['Titan max fpa'][115:244]*(np.pi/180), data['v1 max wrt Titan'][115:244], c = 'green')
+ax1.plot(data['Titan min fpa'][103:256]*(np.pi/180), data['v1 min wrt Titan'][103:256], c = 'blue')
+ax1.plot(data['Titan max fpa'][243:257]*(np.pi/180), data['v1 max wrt Titan'][243:257], c = 'orange')
+ax1.plot(data['Titan max fpa'][256:284]*(np.pi/180), data['v1 max wrt Titan'][256:284], c = 'red')
+ax1.plot(data['Titan min fpa'][255:284]*(np.pi/180), data['v1 min wrt Titan'][255:284], c = 'red')
+ax1.plot(data['Titan max fpa'][283:296]*(np.pi/180), data['v1 max wrt Titan'][283:296], c = 'orange')
+ax1.plot(data['Titan max fpa'][295:]*(np.pi/180), data['v1 max wrt Titan'][295:], c = 'green')
+ax1.plot(data['Titan min fpa'][283:]*(np.pi/180), data['v1 min wrt Titan'][283:], c = 'blue')
+#ax1.fill_between(data['Titan max fpa'][::]*(np.pi/180), data['v1 max wrt Titan'][::], 
+#                     data['v1 min wrt Titan'][::], facecolor='green', alpha=0.2)
 plt.title('Family of v1 Velocity Vectors wrt Titan')
 plt.legend(['Maximum Allowable v1 Value', 
             'Maximum Allowable v1 Value - Hitting Escape Velocity Constraint',
