@@ -227,7 +227,7 @@ ax2.plot(data['Saturn fpa (deg)'][103:256]*(np.pi/180), data['Saturn v1 min'][10
 ax2.plot(data['Saturn fpa (deg)'][255:284]*(np.pi/180), data['Saturn v1 min'][255:284], c = 'red')
 ax2.plot(data['Saturn fpa (deg)'][283:]*(np.pi/180), data['Saturn v1 min'][283:], c = 'blue')
 ax2.fill_between(data['Saturn fpa (deg)'][::]*(np.pi/180), data['Saturn v1 max'][::], 
-                     data['Saturn v1 min'][::], facecolor='darkseagreen')
+                 data['Saturn v1 min'][::], facecolor='darkseagreen')
 plt.title('Family of v1 Velocity Vectors wrt Saturn')
 plt.legend(['Good Trajectories - r_p about equal to r_enceladus', 
             'OK Trajectories - Hitting Escape Velocity Constraint', 
