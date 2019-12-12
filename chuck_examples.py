@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 '''
 Created on Thu Dec  5 12:26:07 2019
-
-@author: Space Thot
+@author: sam
 '''
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 def example1():
@@ -88,8 +86,8 @@ def example2():
     a) If the flyby is directly over the south pole os Saturn, at an altitude of 
        150,000 km, the spacecraft will be sent out of the ecliptic plane. That is, 
        the rotation of the v infinity vector will add a component to the final 
-       (post flyby) velocity that is normal to the ecliptic place. What will be the
-       post flyby inclination of the spacecrafts heliocentric orbit? 
+       (post flyby) velocity that is normal to the ecliptic place. What will be
+       the post flyby inclination of the spacecrafts heliocentric orbit? 
        Solution: i = 21.34 degrees
     b) What will be the semimajor axis of the spacecraft orbut after the flyby?
        Solution: v = 13.13 km/s
@@ -116,6 +114,7 @@ def example2():
     v_saturn = np.sqrt(mu_sun/a_saturn_au)*autu2kms
     v_inf = v_saturn - v_A
     delta = 2*(np.arcsin(1/(1 + ((rp*v_inf**2)/(mu_saturn)))))
+    # law of cosines to find v0
     v_0 = np.sqrt(v_saturn**2 + v_inf**2 - 2*v_saturn*v_inf*np.cos(delta))
     i = np.arcsin(v_inf/(v_0/np.sin(delta)))*(180/np.pi)
     print('a) {} degrees'.format(i))
@@ -129,12 +128,28 @@ def example2():
     print('c) {}'.format(e))
 
 
+def example3():
+    '''
+    Determining the Perilune Altitude for an Apollo Free_Return Trajectory.
+    Suppose the radial component of the geocentric spacecraft velocity at lunar 
+    arrival is 0.75 km/s. (This number is chosen as being representative of the 
+    actual Apollo missions.) What is the perilune altitude that will yield a 
+    free-return trajectory?
+    '''
+    
+a = 384000 #km
+mu_earth = 3.986004415*10**5 # km^3/s^2
+r_moon = 1738 #km
+r_earth = 6378.1363 #km
+
+v_r = 0.75 # km/s
+e = -1*(r_earth/a + 1)
+e = 0.983
+v_0 = np.sqrt((mu_earth*a*(1 - e)*(1+e))/r_moon)
+v_mag = np.sqrt(v_r**2 + v_0**2)
+    
 
 
 if __name__ == '__main__':
     example1()
     example2()
-
-
-
-
