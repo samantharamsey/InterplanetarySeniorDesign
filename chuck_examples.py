@@ -96,7 +96,7 @@ def example2():
     '''
     
     # some constants
-    a_saturn_km = 1429394133
+    r_saturn = 9.49*6378.12
     a_saturn_au = 9.554909595
     au2km = 1.4959965*10**8
     tu2s = 5.0226757*10**6
@@ -108,12 +108,13 @@ def example2():
     print('Example 9.2 Solutions:')
     
     # part a
-    rp = 150000
+    rp = 150000 + r_saturn
     a_h = (a_saturn_au + mu_sun)/2 # au
     v_A = np.sqrt(mu_sun*((2/a_saturn_au) - (1/a_h)))*autu2kms
     v_saturn = np.sqrt(mu_sun/a_saturn_au)*autu2kms
     v_inf = v_saturn - v_A
     delta = 2*(np.arcsin(1/(1 + ((rp*v_inf**2)/(mu_saturn)))))
+    e = 1/(1 + ((rp*v_inf**2)/(mu_saturn)))
     # law of cosines to find v0
     v_0 = np.sqrt(v_saturn**2 + v_inf**2 - 2*v_saturn*v_inf*np.cos(delta))
     i = np.arcsin(v_inf/(v_0/np.sin(delta)))*(180/np.pi)
@@ -137,19 +138,28 @@ def example3():
     free-return trajectory?
     '''
     
-a = 384000 #km
-mu_earth = 3.986004415*10**5 # km^3/s^2
-r_moon = 1738 #km
-r_earth = 6378.1363 #km
-
-v_r = 0.75 # km/s
-e = -1*(r_earth/a + 1)
-e = 0.983
-v_0 = np.sqrt((mu_earth*a*(1 - e)*(1+e))/r_moon)
-v_mag = np.sqrt(v_r**2 + v_0**2)
+    # some constants
+    a = 384000 #km
+    mu_earth = 3.986004415*10**5 # km^3/s^2
+    mu_moon = 0.00490*10**6 # km^3/s^2
+    r_moon = 1738 #km
+    v_r = 0.75 # km/s
+    v_moon = 1.023 #km/s
+    e = 0.983
+    print(' ')
+    print('Example 9.3 Solution:')
     
+    v_0 = np.sqrt((mu_earth*a*(1 - e)*(1 + e)))/(384400 + 300)
+    v_mag = np.sqrt(v_r**2 + v_0**2)
+    fpa = np.arccos(v_0/v_mag)
+    v_inf_moon = np.sqrt(v_mag**2 + v_moon**2 - 2*v_mag*v_moon*np.cos(fpa))
+    new_e = 1.499
+    rp_moon = ((new_e - 1)*mu_moon)/v_inf_moon**2
+    perilune = rp_moon - r_moon
+    print('Required perilune altitude is {} km'.format(perilune))
 
 
 if __name__ == '__main__':
     example1()
     example2()
+    example3()
