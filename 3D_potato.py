@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 Created on Mon Dec 9 12:45:36 2019
 
 @author: sam
-'''
+"""
 
 
 import pandas as pd
@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 
 def RV2COE(mu, state):
-    '''
+    """
     Converts a state vector to the classical orbital elements
     * does not include special cases *
     Args:
@@ -22,14 +22,14 @@ def RV2COE(mu, state):
         h_mag - specific angular momentum
         E - specific mechanical energy 
         n_mag - magnitude of the node vector 
-        e_mag - ecentricity 
+        e_mag - eccentricity
         p - semiparameter 
         a - semimajor axis 
         i_deg - inclination in radians 
         Omega_deg - longitude of the ascending node in radians 
         omega_deg - argument of perigee in radians 
-        true_deg - true anomally in radians
-    '''
+        true_deg - true anomaly in radians
+    """
     
     tol = 1*10**-6
     K = [0, 0, 1]
@@ -152,42 +152,60 @@ def state(r, v, gamma, inc):
     return state
 
 
+def calc_new_v(start, inc):
+
+    v1 = start  # max v1 to prevent escape from Saturn system in km/s
+    r = 238010
+
+    while r > r_encel:
+        v1 = v1 + inc  # max v1 to prevent escape from Saturn system in km/s
+        pos = np.array([r_titan, 0, 0])  # initial satellite position
+        statevec = state(pos, v1, g, i)
+
+        # calculate classical orbital elements
+        h, E, n, e, p, a, incl, Omega, omega, true = RV2COE(mu, statevec)
+
+        # True Anomaly at Descending Node
+        nu = np.pi - omega
+
+        # Radius at Descending Node
+        r = p / (1 + e * np.cos(nu))
+
+        # print some stuff to see progress
+        print('%-13s %-20s % -20s %-20s %-20s'
+              % ('v1', 'gamma', 'inclination', 'r', 'w'))
+        print('%5.1f %20.10f %20.10f %20.10f %20.10f'
+              % (v1, g, i, r, nu))
+
+    return v1, r, h, E, n, e, p, a, incl, Omega, omega, nu
+
+
 if __name__ == '__main__':
     
     # define some constants
-    mu = 37.931*10**6 # saturns gravitational parameter
-    saturn_equatorial = 60268 # km
-    saturn_polar = 54364 # km
-    r_titan = 1.2*10**6 # titans orbit radius 
-    r_encel = 238000 # km
-    v_titan = 5.57 # km/s
+    mu = 37.931*10**6  # saturn's gravitational parameter
+    saturn_equatorial = 60268  # km
+    saturn_polar = 54364  # km
+    r_titan = 1.2*10**6  # titans orbit radius
+    r_encel = 238000  # km
+    v_titan = 5.57  # km/s
     
-    gamma = np.linspace(1, 90, 20) # flight path angle array
-    inc = np.linspace(1, 90, 20) # inclination angle array
-    data = pd.DataFrame([]) # initialize an empty dataframe
+    gamma = np.linspace(1, 360, 25)  # flight path angle array
+    inc = np.linspace(1, 360, 25)  # inclination angle array
+    data = pd.DataFrame([])  # initialize an empty dataframe
     
     for g in gamma:
         for i in inc:
-            v1 = 7.94 # max v1 to prevent escape from Saturn system in km/s
-            r = r_encel + 10
-            
-            while r > r_encel:
-                
-                v1 = v1 - 0.01 # max v1 to prevent escape from Saturn system in km/s
-                pos = np.array([r_titan, 0, 0]) # initial satellite position
-                statevec = state(pos, v1, g, i)
-                # calculate classical orbital elements
-                h, E, n, e, p, a, incl, Omega, omega, true = RV2COE(mu, statevec)
-                # True Anomally at Descending Node
-                nu = np.pi - omega
-                # Radius at Descending Node
-                r = p/(1 + e*np.cos(nu))
-                # print some stuff to see progress
-                print('%-13s %-20s % -20s %-20s %-20s'  
-                  %('v1', 'gamma', 'inclination', 'r', 'w'))
-                print('%5.1f %20.10f %20.10f %20.10f %20.10f' 
-                  %(v1, g, i, r, nu))
-            
+
+            if 0 < g < 90 or 270 < g < 360:
+                v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(7.94, -0.01)
+
+            elif 90 < i < 270:
+                v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(-7.94, 0.01)
+
+            else:
+                v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+
             # Add to the Dataframe
             data = data.append(pd.DataFrame({'Saturn fpa (deg)': g, 
                                              'Saturn inclination (deg)': i,
@@ -200,8 +218,10 @@ if __name__ == '__main__':
                                              'Inclination': incl*(180/np.pi),
                                              'Longitude of Ascending Node': Omega*(180/np.pi),
                                              'Argument of Perigee': omega*(180/np.pi),
-                                             'True Anomally': nu*(180/np.pi)},
-                                             index = [0]), ignore_index = True)
+                                             'True Anomaly': nu*(180/np.pi)},
+                                            index=[0]), ignore_index=True)
+
+
 #    v1 = 3.24
 #    g = 20
 #    i = 20        
@@ -232,4 +252,3 @@ if __name__ == '__main__':
 #    r = p/(1 + e*np.cos(nu))    
 #    print(' ')
 #    print('Radius at Descending Node: {} km'.format(r))
-        
