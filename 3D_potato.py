@@ -198,11 +198,17 @@ if __name__ == '__main__':
         for i in inc:
 
             if 0 < g < 90 or 270 < g < 360:
-                v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(7.94, -0.01)
-
-            elif 90 < i < 270:
-                v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(-7.94, 0.01)
-
+                if 0 < i < 180:
+                    v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(7.94, -0.01)
+                else:
+                    v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(-7.94, 0.01)
+                    
+            elif 90 < g < 270:
+                if 0 < i < 180:
+                    v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(-7.94, 0.01)
+                else:
+                    v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(7.94, -0.01)
+                    
             else:
                 v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 
