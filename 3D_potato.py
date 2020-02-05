@@ -379,7 +379,7 @@ if __name__ == '__main__':
     mu = 37.931*10**6  # saturn's gravitational parameter
     saturn_equatorial = 60268  # km
     saturn_polar = 54364  # km
-    r_titan = 1.2*10**6  # titans orbit radius
+    r_titan = 1.2*10**6  # km
     r_encel = 238000  # km
     v_titan = 5.57  # km/s
     
@@ -393,15 +393,15 @@ if __name__ == '__main__':
     # NOTES:
     # first input for each function is inclination, second input is flight
     # path angle, both can range from 0 - 360 degrees
-    # each time you call the function, it will generate a new plot
+    # each time you call a function, it will generate a new plot
     
     # plot a single inclination curve
     plot_single_inclination(45, 360)
     
     # plot the inclination curves in multiples of 10
-    inclination = [10, 20, 30, 40, 50, 60, 70, 80]
+    inclination = [1, 10, 20, 30, 40, 50, 60, 70, 80, 89]
     plot_multiple_inclinations(inclination, 360) 
     
     # plot the entire first quadrant
-    plot_inclination_range(90, 90)
+    plot_inclination_range(180, 90)
     
