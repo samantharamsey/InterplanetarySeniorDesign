@@ -15,7 +15,7 @@ from mpl_toolkits.mplot3d import Axes3D
 ######################### UPDATE PATHS BEFORE RUNNING #########################
 
 def RV2COE(mu, state):
-    """
+    '''
     Converts a state vector to the classical orbital elements
     * does not include special cases *
     Args:
@@ -32,7 +32,7 @@ def RV2COE(mu, state):
         Omega_deg - longitude of the ascending node in radians 
         omega_deg - argument of perigee in radians 
         true_deg - true anomaly in radians
-    """
+    '''
     
     tol = 1*10**-6
     K = [0, 0, 1]
