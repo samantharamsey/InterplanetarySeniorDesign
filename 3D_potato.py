@@ -391,9 +391,9 @@ if __name__ == '__main__':
 ################################## PLOTTING ###################################
     
     # NOTES:
-    # first input for each function is inclination, second input is flight
-    # path angle, both can range from 0 - 360 degrees
-    # each time you call a function, it will generate a new plot
+    # first input for each function is inclination second is flight path angle
+    # both can range from 0 - 360 degrees
+    # each function call will generate a new plot
     
     # plot a single inclination curve
     plot_single_inclination(45, 360)
