@@ -403,5 +403,5 @@ if __name__ == '__main__':
     plot_multiple_inclinations(inclination, 360) 
     
     # plot the entire first quadrant
-    plot_inclination_range(180, 90)
+    plot_inclination_range(90, 90)
     
