@@ -364,6 +364,33 @@ def plot_inclination_range(inclination, gamma):
     plt.show()
     
     
+def referenceframe_transformation():
+    '''
+    Converts from Saturn centered reference frame to Titan centered
+    '''
+    
+    # wrt Saturn
+    vx_max = data['Saturn v1 max']*np.cos(data['Saturn inclination (deg)']*(np.pi/180))*np.sin(data['Saturn fpa (deg)']*(np.pi/180))
+    vy_max = data['Saturn v1 max']*np.cos(data['Saturn inclination (deg)']*(np.pi/180))*np.cos(data['Saturn fpa (deg)']*(np.pi/180))
+    vz_max = data['Saturn v1 max']*np.sin(data['Saturn inclination (deg)']*(np.pi/180))
+
+    # wrt Titan
+    # v_inf = v1 - v_titan in the y-direction
+    new_vymax = vy_max - v_titan
+
+    vmax = []
+
+    for i in range(129600):
+        vmax_titan = np.linalg.norm([vx_max[i], new_vymax[i], vz_max[i]])
+        vmax.append(vmax_titan)
+    titan_fpa_max = np.arctan2(vx_max, new_vymax)
+
+    data.insert(12, 'Titan max fpa', titan_fpa_max*(180/np.pi), True)
+    data.insert(13, 'Titan v1 max magnitude', vmax, True)
+    
+    data.to_hdf(filepath + filename + r'.hdf', key = 'df')
+    
+    
 if __name__ == '__main__':
 
 ################################ CALCULATIONS #################################
@@ -396,11 +423,11 @@ if __name__ == '__main__':
     # each function call will generate a new plot
     
     # plot a single inclination curve
-    plot_single_inclination(45, 360)
+    plot_single_inclination(45, 90)
     
     # plot the inclination curves in multiples of 10
     inclination = [1, 10, 20, 30, 40, 50, 60, 70, 80, 89]
-    plot_multiple_inclinations(inclination, 360) 
+    plot_multiple_inclinations(inclination, 90) 
     
     # plot the entire first quadrant
     plot_inclination_range(90, 90)
