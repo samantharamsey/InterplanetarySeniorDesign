@@ -388,7 +388,7 @@ def referenceframe_transformation():
     data.insert(12, 'Titan fpa (deg)', titan_fpa_max*(180/np.pi), True)
     data.insert(13, 'Titan v1', vmax, True)
     
-    data.to_hdf(filepath + filename + r'.hdf', key = 'df')
+    data.to_hdf(filepath2 + filename + r'.hdf', key = 'df')
     
     
 if __name__ == '__main__':
@@ -397,8 +397,7 @@ if __name__ == '__main__':
     
     # load pre-existing file into the dataframe
     # UPDATE FILEPATH BEFORE RUNNING
-    filepath = r'C:\Users\saman\OneDrive\Desktop\senior_design'
-    
+    filepath = r'C:\Users\saman\OneDrive\Desktop\InterplanetarySeniorDesign'
     filename = r'\3D_potato'
     data = pd.read_hdf(filepath + filename + r'.hdf')
     
