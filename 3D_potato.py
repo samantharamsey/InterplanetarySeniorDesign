@@ -385,8 +385,8 @@ def referenceframe_transformation():
         vmax.append(vmax_titan)
     titan_fpa_max = np.arctan2(vx_max, new_vymax)
 
-    data.insert(12, 'Titan max fpa', titan_fpa_max*(180/np.pi), True)
-    data.insert(13, 'Titan v1 max magnitude', vmax, True)
+    data.insert(12, 'Titan fpa (deg)', titan_fpa_max*(180/np.pi), True)
+    data.insert(13, 'Titan v1', vmax, True)
     
     data.to_hdf(filepath + filename + r'.hdf', key = 'df')
     
