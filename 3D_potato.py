@@ -260,26 +260,32 @@ def plot_single_inclination(inclination, gamma):
     new_data = new_data[lower]
     new_data = new_data[upper]
     # determine the plot color based on the perigee radius
-    green = new_data['Radius at Descending Node'] > 230000
-    red = new_data['Radius at Descending Node'] <= 230000
+    green =  new_data['Radius at Descending Node'] > 230000
+    orange = new_data['Radius at Descending Node'].between(61000, 230000)
+    red =    new_data['Radius at Descending Node'] < 61000
     # create a mini dataframe of each color
     data3 = new_data[green]
-    data4 = new_data[red]
+    data4 = new_data[orange]
+    data5 = new_data[red]
     # convert to Cartesian coordinates
-    X_green = data3['Saturn v1 max']*np.cos(data3['Saturn inclination (deg)']*(np.pi/180))*np.sin(data3['Saturn fpa (deg)']*(np.pi/180))
-    Y_green = data3['Saturn v1 max']*np.cos(data3['Saturn inclination (deg)']*(np.pi/180))*np.cos(data3['Saturn fpa (deg)']*(np.pi/180))
-    Z_green = data3['Saturn v1 max']*np.sin(data3['Saturn inclination (deg)']*(np.pi/180))
-    X_red =   data4['Saturn v1 max']*np.cos(data4['Saturn inclination (deg)']*(np.pi/180))*np.sin(data4['Saturn fpa (deg)']*(np.pi/180))
-    Y_red =   data4['Saturn v1 max']*np.cos(data4['Saturn inclination (deg)']*(np.pi/180))*np.cos(data4['Saturn fpa (deg)']*(np.pi/180))
-    Z_red =   data4['Saturn v1 max']*np.sin(data4['Saturn inclination (deg)']*(np.pi/180))
+    X_green =  data3['Saturn v1 max']*np.cos(data3['Saturn inclination (deg)']*(np.pi/180))*np.sin(data3['Saturn fpa (deg)']*(np.pi/180))
+    Y_green =  data3['Saturn v1 max']*np.cos(data3['Saturn inclination (deg)']*(np.pi/180))*np.cos(data3['Saturn fpa (deg)']*(np.pi/180))
+    Z_green =  data3['Saturn v1 max']*np.sin(data3['Saturn inclination (deg)']*(np.pi/180))
+    X_orange = data4['Saturn v1 max']*np.cos(data4['Saturn inclination (deg)']*(np.pi/180))*np.sin(data4['Saturn fpa (deg)']*(np.pi/180))
+    Y_orange = data4['Saturn v1 max']*np.cos(data4['Saturn inclination (deg)']*(np.pi/180))*np.cos(data4['Saturn fpa (deg)']*(np.pi/180))
+    Z_orange = data4['Saturn v1 max']*np.sin(data4['Saturn inclination (deg)']*(np.pi/180))
+    X_red =    data5['Saturn v1 max']*np.cos(data5['Saturn inclination (deg)']*(np.pi/180))*np.sin(data5['Saturn fpa (deg)']*(np.pi/180))
+    Y_red =    data5['Saturn v1 max']*np.cos(data5['Saturn inclination (deg)']*(np.pi/180))*np.cos(data5['Saturn fpa (deg)']*(np.pi/180))
+    Z_red =    data5['Saturn v1 max']*np.sin(data5['Saturn inclination (deg)']*(np.pi/180))
     # do the plotting
     fig = plt.figure()
     ax = fig.add_subplot(111, projection = '3d')
-    ax.scatter(X_green, Y_green, Z_green, c = 'green')
-    ax.scatter(X_red, Y_red, Z_red, c = 'red')
-    ax.set_xlabel('X velocity component (km/s)')
-    ax.set_ylabel('Y velocity component (km/s)')
-    ax.set_zlabel('Z velocity component (km/s)')
+    ax.scatter(X_green,  Y_green,  Z_green,  c = 'green')
+    ax.scatter(X_orange, Y_orange, Z_orange, c = 'orange')
+    ax.scatter(X_red,    Y_red,    Z_red,    c = 'red')
+    ax.set_xlabel('Radial Velocity Component (km/s)')
+    ax.set_ylabel('Tangential Velocity Component (km/s)')
+    ax.set_zlabel('Vertical Velocity Component (km/s)')
     plt.show()
     
 
@@ -304,24 +310,30 @@ def plot_multiple_inclinations(inclination, gamma):
         new_data = new_data[lower]
         new_data = new_data[upper]
         # determine the plot color based on the perigee radius
-        green = new_data['Radius at Descending Node'] > 230000
-        red = new_data['Radius at Descending Node'] <= 230000
+        green =  new_data['Radius at Descending Node'] > 230000
+        orange = new_data['Radius at Descending Node'].between(61000, 230000)
+        red =    new_data['Radius at Descending Node'] < 61000
         # create a mini dataframe of each color
         data3 = new_data[green]
-        data4 = new_data[red]
+        data4 = new_data[orange]
+        data5 = new_data[red]
         # convert to Cartesian coordinates
-        X_green = data3['Saturn v1 max']*np.cos(data3['Saturn inclination (deg)']*(np.pi/180))*np.sin(data3['Saturn fpa (deg)']*(np.pi/180))
-        Y_green = data3['Saturn v1 max']*np.cos(data3['Saturn inclination (deg)']*(np.pi/180))*np.cos(data3['Saturn fpa (deg)']*(np.pi/180))
-        Z_green = data3['Saturn v1 max']*np.sin(data3['Saturn inclination (deg)']*(np.pi/180))
-        X_red =   data4['Saturn v1 max']*np.cos(data4['Saturn inclination (deg)']*(np.pi/180))*np.sin(data4['Saturn fpa (deg)']*(np.pi/180))
-        Y_red =   data4['Saturn v1 max']*np.cos(data4['Saturn inclination (deg)']*(np.pi/180))*np.cos(data4['Saturn fpa (deg)']*(np.pi/180))
-        Z_red =   data4['Saturn v1 max']*np.sin(data4['Saturn inclination (deg)']*(np.pi/180))
-        # do the plotting
-        ax.scatter(X_green, Y_green, Z_green, c = 'green')
-        ax.scatter(X_red, Y_red, Z_red, c = 'red')
-    ax.set_xlabel('X velocity component (km/s)')
-    ax.set_ylabel('Y velocity component (km/s)')
-    ax.set_zlabel('Z velocity component (km/s)')
+        X_green =  data3['Saturn v1 max']*np.cos(data3['Saturn inclination (deg)']*(np.pi/180))*np.sin(data3['Saturn fpa (deg)']*(np.pi/180))
+        Y_green =  data3['Saturn v1 max']*np.cos(data3['Saturn inclination (deg)']*(np.pi/180))*np.cos(data3['Saturn fpa (deg)']*(np.pi/180))
+        Z_green =  data3['Saturn v1 max']*np.sin(data3['Saturn inclination (deg)']*(np.pi/180))
+        X_orange = data4['Saturn v1 max']*np.cos(data4['Saturn inclination (deg)']*(np.pi/180))*np.sin(data4['Saturn fpa (deg)']*(np.pi/180))
+        Y_orange = data4['Saturn v1 max']*np.cos(data4['Saturn inclination (deg)']*(np.pi/180))*np.cos(data4['Saturn fpa (deg)']*(np.pi/180))
+        Z_orange = data4['Saturn v1 max']*np.sin(data4['Saturn inclination (deg)']*(np.pi/180))
+        X_red =    data5['Saturn v1 max']*np.cos(data5['Saturn inclination (deg)']*(np.pi/180))*np.sin(data5['Saturn fpa (deg)']*(np.pi/180))
+        Y_red =    data5['Saturn v1 max']*np.cos(data5['Saturn inclination (deg)']*(np.pi/180))*np.cos(data5['Saturn fpa (deg)']*(np.pi/180))
+        Z_red =    data5['Saturn v1 max']*np.sin(data5['Saturn inclination (deg)']*(np.pi/180))
+        # do the plotting 
+        ax.scatter(X_green,  Y_green,  Z_green,  c = 'green')
+        ax.scatter(X_orange, Y_orange, Z_orange, c = 'orange')
+        ax.scatter(X_red,    Y_red,    Z_red,    c = 'red')
+    ax.set_xlabel('Radial Velocity Component (km/s)')
+    ax.set_ylabel('Tangential Velocity Component (km/s)')
+    ax.set_zlabel('Vertical Velocity Component (km/s)')
     plt.show()
   
 
@@ -341,26 +353,32 @@ def plot_inclination_range(inclination, gamma):
     new_data = data[fpa]
     new_data = new_data[inc]
     # determine the plot color based on the perigee radius
-    green = new_data['Radius at Descending Node'] > 230000
-    red = new_data['Radius at Descending Node'] <= 230000
+    green =  new_data['Radius at Descending Node'] > 230000
+    orange = new_data['Radius at Descending Node'].between(61000, 230000)
+    red =    new_data['Radius at Descending Node'] < 61000
     # create a mini dataframe of each color
     data3 = new_data[green]
-    data4 = new_data[red]
+    data4 = new_data[orange]
+    data5 = new_data[red]
     # convert to Cartesian coordinates
-    X_green = data3['Saturn v1 max']*np.cos(data3['Saturn inclination (deg)']*(np.pi/180))*np.sin(data3['Saturn fpa (deg)']*(np.pi/180))
-    Y_green = data3['Saturn v1 max']*np.cos(data3['Saturn inclination (deg)']*(np.pi/180))*np.cos(data3['Saturn fpa (deg)']*(np.pi/180))
-    Z_green = data3['Saturn v1 max']*np.sin(data3['Saturn inclination (deg)']*(np.pi/180))
-    X_red =   data4['Saturn v1 max']*np.cos(data4['Saturn inclination (deg)']*(np.pi/180))*np.sin(data4['Saturn fpa (deg)']*(np.pi/180))
-    Y_red =   data4['Saturn v1 max']*np.cos(data4['Saturn inclination (deg)']*(np.pi/180))*np.cos(data4['Saturn fpa (deg)']*(np.pi/180))
-    Z_red =   data4['Saturn v1 max']*np.sin(data4['Saturn inclination (deg)']*(np.pi/180))
+    X_green =  data3['Saturn v1 max']*np.cos(data3['Saturn inclination (deg)']*(np.pi/180))*np.sin(data3['Saturn fpa (deg)']*(np.pi/180))
+    Y_green =  data3['Saturn v1 max']*np.cos(data3['Saturn inclination (deg)']*(np.pi/180))*np.cos(data3['Saturn fpa (deg)']*(np.pi/180))
+    Z_green =  data3['Saturn v1 max']*np.sin(data3['Saturn inclination (deg)']*(np.pi/180))
+    X_orange = data4['Saturn v1 max']*np.cos(data4['Saturn inclination (deg)']*(np.pi/180))*np.sin(data4['Saturn fpa (deg)']*(np.pi/180))
+    Y_orange = data4['Saturn v1 max']*np.cos(data4['Saturn inclination (deg)']*(np.pi/180))*np.cos(data4['Saturn fpa (deg)']*(np.pi/180))
+    Z_orange = data4['Saturn v1 max']*np.sin(data4['Saturn inclination (deg)']*(np.pi/180))
+    X_red =    data5['Saturn v1 max']*np.cos(data5['Saturn inclination (deg)']*(np.pi/180))*np.sin(data5['Saturn fpa (deg)']*(np.pi/180))
+    Y_red =    data5['Saturn v1 max']*np.cos(data5['Saturn inclination (deg)']*(np.pi/180))*np.cos(data5['Saturn fpa (deg)']*(np.pi/180))
+    Z_red =    data5['Saturn v1 max']*np.sin(data5['Saturn inclination (deg)']*(np.pi/180))
     # do the plotting
     fig = plt.figure()
     ax = fig.add_subplot(111, projection = '3d')
-    ax.scatter(X_green, Y_green, Z_green, c = 'green')
-    ax.scatter(X_red, Y_red, Z_red, c = 'red')
-    ax.set_xlabel('X velocity component (km/s)')
-    ax.set_ylabel('Y velocity component (km/s)')
-    ax.set_zlabel('Z velocity component (km/s)')
+    ax.scatter(X_green,  Y_green,  Z_green,  c = 'green')
+    ax.scatter(X_orange, Y_orange, Z_orange, c = 'orange')
+    ax.scatter(X_red,    Y_red,    Z_red,    c = 'red')
+    ax.set_xlabel('Radial Velocity Component (km/s)')
+    ax.set_ylabel('Tangential Velocity Component (km/s)')
+    ax.set_zlabel('Vertical Velocity Component (km/s)')
     plt.show()
     
     
@@ -422,11 +440,11 @@ if __name__ == '__main__':
     # each function call will generate a new plot
     
     # plot a single inclination curve
-    plot_single_inclination(45, 90)
+    plot_single_inclination(45, 360)
     
     # plot the inclination curves in multiples of 10
     inclination = [1, 10, 20, 30, 40, 50, 60, 70, 80, 89]
-    plot_multiple_inclinations(inclination, 90) 
+    plot_multiple_inclinations(inclination, 360) 
     
     # plot the entire first quadrant
     plot_inclination_range(90, 90)
