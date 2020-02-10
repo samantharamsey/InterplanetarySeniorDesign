@@ -385,6 +385,7 @@ def plot_inclination_range(inclination, gamma):
 def referenceframe_transformation():
     '''
     Converts from Saturn centered reference frame to Titan centered
+    *** Appends to DataFrame - will not overwrite columns ***
     '''
     
     # wrt Saturn
