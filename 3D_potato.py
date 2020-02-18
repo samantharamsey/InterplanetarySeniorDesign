@@ -444,9 +444,9 @@ if __name__ == '__main__':
     plot_single_inclination(45, 360)
     
     # plot the inclination curves in multiples of 10
-    inclination = [20, 21, 22, 23, 24, 25]
+    inclination = [1, 10, 20, 30, 40, 50, 60, 70, 80, 89]
     plot_multiple_inclinations(inclination, 360) 
     
     # plot the entire first quadrant
-    plot_inclination_range(90, 180)
+    plot_inclination_range(90, 90)
     
