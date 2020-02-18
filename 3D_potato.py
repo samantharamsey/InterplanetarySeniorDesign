@@ -1,18 +1,21 @@
 # -*- coding: utf-8 -*-
-"""
+'''
 Created on Mon Dec 9 12:45:36 2019
-
 @author: sam
-"""
+'''
 
 
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
+
+###############################################################################
+######################### UPDATE PATHS BEFORE RUNNING #########################
 
 def RV2COE(mu, state):
-    """
+    '''
     Converts a state vector to the classical orbital elements
     * does not include special cases *
     Args:
@@ -29,7 +32,7 @@ def RV2COE(mu, state):
         Omega_deg - longitude of the ascending node in radians 
         omega_deg - argument of perigee in radians 
         true_deg - true anomaly in radians
-    """
+    '''
     
     tol = 1*10**-6
     K = [0, 0, 1]
@@ -144,65 +147,77 @@ def state(r, v, gamma, inc):
     Returns:
         state - state array
     '''
+    
     g = gamma*(np.pi/180)
     i = inc*(np.pi/180)
     state = np.concatenate((r, [v*np.cos(i)*np.sin(g), 
                                 v*np.cos(i)*np.cos(g), 
                                 v*np.sin(i)]))
+    
     return state
 
 
 def calc_new_v(start, inc):
-
-    v1 = start  # max v1 to prevent escape from Saturn system in km/s
+    '''
+    Calculates necessary v1 
+    Args:
+        start - initial v1 <= escape velocity
+        inc - inclination
+    Returns:
+        v1 - post aerocapture velocity that results in satisfactory orbit
+        orbital elements
+    '''
+    
+    v1 = start  
     r = 238010
-
+    # vary v1 until r_p = r_enceladus
+    
     while r > r_encel:
-        v1 = v1 + inc  # max v1 to prevent escape from Saturn system in km/s
-        pos = np.array([r_titan, 0, 0])  # initial satellite position
+        v1 = v1 + inc  
+        # initial satellite position
+        pos = np.array([r_titan, 0, 0])
         statevec = state(pos, v1, g, i)
-
         # calculate classical orbital elements
         h, E, n, e, p, a, incl, Omega, omega, true = RV2COE(mu, statevec)
-
         # True Anomaly at Descending Node
         nu = np.pi - omega
-
         # Radius at Descending Node
         r = p / (1 + e * np.cos(nu))
-
-        # print some stuff to see progress
+        
+        # print some stuff to show progress in console
         print('%-13s %-20s % -20s %-20s %-20s'
               % ('v1', 'gamma', 'inclination', 'r', 'w'))
         print('%5.1f %20.10f %20.10f %20.10f %20.10f'
               % (v1, g, i, r, nu))
-
+        
     return v1, r, h, E, n, e, p, a, incl, Omega, omega, nu
 
 
-if __name__ == '__main__':
+def calculation_loop(inclination, gamma):
+    '''
+    Makes the calculations and saves to a dataframe
+    Args:
+        inclination - array of inclinations
+        gamma - array of flight path angles
+    '''
     
-    # define some constants
-    mu = 37.931*10**6  # saturn's gravitational parameter
-    saturn_equatorial = 60268  # km
-    saturn_polar = 54364  # km
-    r_titan = 1.2*10**6  # titans orbit radius
-    r_encel = 238000  # km
-    v_titan = 5.57  # km/s
-    
-    gamma = np.linspace(1, 360, 25)  # flight path angle array
-    inc = np.linspace(1, 360, 25)  # inclination angle array
-    data = pd.DataFrame([])  # initialize an empty dataframe
-    
+    # initialize an empty dataframe
+    data = pd.DataFrame([])
     for g in gamma:
         for i in inc:
 
             if 0 < g < 90 or 270 < g < 360:
-                v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(7.94, -0.01)
-
-            elif 90 < i < 270:
-                v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(-7.94, 0.01)
-
+                if 0 < i < 180:
+                    v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(7.94, -0.01)
+                else:
+                    v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(-7.94, 0.01)
+                    
+            elif 90 < g < 270:
+                if 0 < i < 180:
+                    v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(7.94, -0.01)
+                else:
+                    v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(-7.94, 0.01)
+                    
             else:
                 v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 
@@ -220,35 +235,218 @@ if __name__ == '__main__':
                                              'Argument of Perigee': omega*(180/np.pi),
                                              'True Anomaly': nu*(180/np.pi)},
                                             index=[0]), ignore_index=True)
+    # send results to excel
+    data.to_csv(filepath + filename + r'.csv', index = False)
+    # send results to HDF5 - faster loading
+    data.to_hdf(filepath + filename + r'.hdf', key = 'df')
+    
+    
+def plot_single_inclination(inclination, gamma):
+    '''
+    Plots a single degree of inclination for a range of flight path angles
+    *** Use this to see a single inclination curve ***
+    Args:
+        inclination - the inclination you want to plot in degrees
+                      allowable range: 0 < inclination < 360
+        gamma - the final flight path angle to plot in degrees
+                this function will plot from fpa = 0 - fpa = gamma
+                allowable range: 0 < gamma < 360
+    '''
+    
+    fpa = data['Saturn fpa (deg)'] < gamma
+    lower = data['Saturn inclination (deg)'] < inclination + 1
+    upper = data['Saturn inclination (deg)'] > inclination - 1
+    new_data = data[fpa]
+    new_data = new_data[lower]
+    new_data = new_data[upper]
+    # determine the plot color based on the perigee radius
+    green =  new_data['Radius at Descending Node'] > 230000
+    orange = new_data['Radius at Descending Node'].between(61000, 230000)
+    red =    new_data['Radius at Descending Node'] < 61000
+    # create a mini dataframe of each color
+    data3 = new_data[green]
+    data4 = new_data[orange]
+    data5 = new_data[red]
+    # convert to Cartesian coordinates
+    X_green =  data3['Saturn v1 max']*np.cos(data3['Saturn inclination (deg)']*(np.pi/180))*np.sin(data3['Saturn fpa (deg)']*(np.pi/180))
+    Y_green =  data3['Saturn v1 max']*np.cos(data3['Saturn inclination (deg)']*(np.pi/180))*np.cos(data3['Saturn fpa (deg)']*(np.pi/180))
+    Z_green =  data3['Saturn v1 max']*np.sin(data3['Saturn inclination (deg)']*(np.pi/180))
+    X_orange = data4['Saturn v1 max']*np.cos(data4['Saturn inclination (deg)']*(np.pi/180))*np.sin(data4['Saturn fpa (deg)']*(np.pi/180))
+    Y_orange = data4['Saturn v1 max']*np.cos(data4['Saturn inclination (deg)']*(np.pi/180))*np.cos(data4['Saturn fpa (deg)']*(np.pi/180))
+    Z_orange = data4['Saturn v1 max']*np.sin(data4['Saturn inclination (deg)']*(np.pi/180))
+    X_red =    data5['Saturn v1 max']*np.cos(data5['Saturn inclination (deg)']*(np.pi/180))*np.sin(data5['Saturn fpa (deg)']*(np.pi/180))
+    Y_red =    data5['Saturn v1 max']*np.cos(data5['Saturn inclination (deg)']*(np.pi/180))*np.cos(data5['Saturn fpa (deg)']*(np.pi/180))
+    Z_red =    data5['Saturn v1 max']*np.sin(data5['Saturn inclination (deg)']*(np.pi/180))
+    # do the plotting
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection = '3d')
+    ax.scatter(X_green,  Y_green,  Z_green,  c = 'green')
+    ax.scatter(X_orange, Y_orange, Z_orange, c = 'orange')
+    ax.scatter(X_red,    Y_red,    Z_red,    c = 'red')
+    ax.set_xlabel('Radial Velocity Component (km/s)')
+    ax.set_ylabel('Tangential Velocity Component (km/s)')
+    ax.set_zlabel('Vertical Velocity Component (km/s)')
+    plt.show()
+    
 
+def plot_multiple_inclinations(inclination, gamma):
+    '''
+    Plots a selection of inclinations for a range of flight path angles
+    *** Use this to see a small selection of inclination curves ***
+    Args:
+        inclination - an [array] of inclinations you want to plot in degrees
+                      0 < inclination < 360
+        gamma - the final flight path angle to plot in degrees
+                as a single number; 0 < gamma < 360
+    '''
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection = '3d')
+    for i in inclination:
+        fpa = data['Saturn fpa (deg)'] < gamma
+        lower = data['Saturn inclination (deg)'] < i + 1
+        upper = data['Saturn inclination (deg)'] > i - 1
+        new_data = data[fpa]
+        new_data = new_data[lower]
+        new_data = new_data[upper]
+        # determine the plot color based on the perigee radius
+        green =  new_data['Radius at Descending Node'] > 230000
+        orange = new_data['Radius at Descending Node'].between(61000, 230000)
+        red =    new_data['Radius at Descending Node'] < 61000
+        # create a mini dataframe of each color
+        data3 = new_data[green]
+        data4 = new_data[orange]
+        data5 = new_data[red]
+        # convert to Cartesian coordinates
+        X_green =  data3['Saturn v1 max']*np.cos(data3['Saturn inclination (deg)']*(np.pi/180))*np.sin(data3['Saturn fpa (deg)']*(np.pi/180))
+        Y_green =  data3['Saturn v1 max']*np.cos(data3['Saturn inclination (deg)']*(np.pi/180))*np.cos(data3['Saturn fpa (deg)']*(np.pi/180))
+        Z_green =  data3['Saturn v1 max']*np.sin(data3['Saturn inclination (deg)']*(np.pi/180))
+        X_orange = data4['Saturn v1 max']*np.cos(data4['Saturn inclination (deg)']*(np.pi/180))*np.sin(data4['Saturn fpa (deg)']*(np.pi/180))
+        Y_orange = data4['Saturn v1 max']*np.cos(data4['Saturn inclination (deg)']*(np.pi/180))*np.cos(data4['Saturn fpa (deg)']*(np.pi/180))
+        Z_orange = data4['Saturn v1 max']*np.sin(data4['Saturn inclination (deg)']*(np.pi/180))
+        X_red =    data5['Saturn v1 max']*np.cos(data5['Saturn inclination (deg)']*(np.pi/180))*np.sin(data5['Saturn fpa (deg)']*(np.pi/180))
+        Y_red =    data5['Saturn v1 max']*np.cos(data5['Saturn inclination (deg)']*(np.pi/180))*np.cos(data5['Saturn fpa (deg)']*(np.pi/180))
+        Z_red =    data5['Saturn v1 max']*np.sin(data5['Saturn inclination (deg)']*(np.pi/180))
+        # do the plotting 
+        ax.scatter(X_green,  Y_green,  Z_green,  c = 'green')
+        ax.scatter(X_orange, Y_orange, Z_orange, c = 'orange')
+        ax.scatter(X_red,    Y_red,    Z_red,    c = 'red')
+    ax.set_xlabel('Radial Velocity Component (km/s)')
+    ax.set_ylabel('Tangential Velocity Component (km/s)')
+    ax.set_zlabel('Vertical Velocity Component (km/s)')
+    plt.show()
+  
 
-#    v1 = 3.24
-#    g = 20
-#    i = 20        
-#    pos = np.array([r_titan, 0, 0]) # initial satellite position
-#    statevec = state(pos, v1, g, i)
-#    # calculate classical orbital elements
-#    h, E, n, e, p, a, incl, Omega, omega, true = RV2COE(mu, statevec)
-#    nu = np.pi - omega
-#    r = p/(1 + e*np.cos(nu)) 
-#    print(' ')
-#    print('Position: {} km \
-#          \nVelocity: {} km/s \
-#          '.format(statevec[:3], statevec[3:]))
-#    print(' ')
-#    print('Specific angular momentum: {} km^2/s \
-#          \nSpecific mechanical energy: {} J \
-#          \nNode magnitude: {} km^2/s \
-#          \nEccentricity magnitude: {} \
-#          \nSemiparameter: {} km \
-#          \nSemimajor axis: {} km \
-#          \nInclination: {} deg \
-#          \nLongitude of the ascending node: {} deg \
-#          \nArgument of perigee: {} deg \
-#          \nTrue anomally: {} deg \
-#          '.format(h, E, n, e, p, a, incl*(180/np.pi), 
-#                   Omega*(180/np.pi), omega*(180/np.pi), true*(180/np.pi))) 
-#    nu = 180 - omega   
-#    r = p/(1 + e*np.cos(nu))    
-#    print(' ')
-#    print('Radius at Descending Node: {} km'.format(r))
+def plot_inclination_range(inclination, gamma):
+    '''
+    Plots a range of inclinations for a range of flight path angles
+    *** Use this to go from 0 up to the desired values ***    
+    Args:
+        inclination - the final inclination you want to plot in degrees 
+                      as a single number; 0 < inclination < 360
+        gamma - the final flight path angle to plot in degrees
+                as a single number; 0 < gamma < 360
+    '''      
+      
+    fpa = data['Saturn fpa (deg)'] < gamma
+    inc = data['Saturn inclination (deg)'] < inclination
+    new_data = data[fpa]
+    new_data = new_data[inc]
+    # determine the plot color based on the perigee radius
+    green =  new_data['Radius at Descending Node'] > 230000
+    orange = new_data['Radius at Descending Node'].between(61000, 230000)
+    red =    new_data['Radius at Descending Node'] < 61000
+    # create a mini dataframe of each color
+    data3 = new_data[green]
+    data4 = new_data[orange]
+    data5 = new_data[red]
+    # convert to Cartesian coordinates
+    X_green =  data3['Saturn v1 max']*np.cos(data3['Saturn inclination (deg)']*(np.pi/180))*np.sin(data3['Saturn fpa (deg)']*(np.pi/180))
+    Y_green =  data3['Saturn v1 max']*np.cos(data3['Saturn inclination (deg)']*(np.pi/180))*np.cos(data3['Saturn fpa (deg)']*(np.pi/180))
+    Z_green =  data3['Saturn v1 max']*np.sin(data3['Saturn inclination (deg)']*(np.pi/180))
+    X_orange = data4['Saturn v1 max']*np.cos(data4['Saturn inclination (deg)']*(np.pi/180))*np.sin(data4['Saturn fpa (deg)']*(np.pi/180))
+    Y_orange = data4['Saturn v1 max']*np.cos(data4['Saturn inclination (deg)']*(np.pi/180))*np.cos(data4['Saturn fpa (deg)']*(np.pi/180))
+    Z_orange = data4['Saturn v1 max']*np.sin(data4['Saturn inclination (deg)']*(np.pi/180))
+    X_red =    data5['Saturn v1 max']*np.cos(data5['Saturn inclination (deg)']*(np.pi/180))*np.sin(data5['Saturn fpa (deg)']*(np.pi/180))
+    Y_red =    data5['Saturn v1 max']*np.cos(data5['Saturn inclination (deg)']*(np.pi/180))*np.cos(data5['Saturn fpa (deg)']*(np.pi/180))
+    Z_red =    data5['Saturn v1 max']*np.sin(data5['Saturn inclination (deg)']*(np.pi/180))
+    # do the plotting
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection = '3d')
+    ax.scatter(X_green,  Y_green,  Z_green,  c = 'green')
+    ax.scatter(X_orange, Y_orange, Z_orange, c = 'orange')
+    ax.scatter(X_red,    Y_red,    Z_red,    c = 'red')
+    ax.set_xlabel('Radial Velocity Component (km/s)')
+    ax.set_ylabel('Tangential Velocity Component (km/s)')
+    ax.set_zlabel('Vertical Velocity Component (km/s)')
+    plt.show()
+    
+    
+def referenceframe_transformation():
+    '''
+    Converts from Saturn centered reference frame to Titan centered
+    *** Appends to DataFrame - will not overwrite columns ***
+    '''
+    
+    # wrt Saturn
+    vx_max = data['Saturn v1 max']*np.cos(data['Saturn inclination (deg)']*(np.pi/180))*np.sin(data['Saturn fpa (deg)']*(np.pi/180))
+    vy_max = data['Saturn v1 max']*np.cos(data['Saturn inclination (deg)']*(np.pi/180))*np.cos(data['Saturn fpa (deg)']*(np.pi/180))
+    vz_max = data['Saturn v1 max']*np.sin(data['Saturn inclination (deg)']*(np.pi/180))
+
+    # wrt Titan
+    # v_inf = v1 - v_titan in the y-direction
+    new_vymax = vy_max - v_titan
+
+    vmax = []
+
+    for i in range(129600):
+        vmax_titan = np.linalg.norm([vx_max[i], new_vymax[i], vz_max[i]])
+        vmax.append(vmax_titan)
+    titan_fpa_max = np.arctan2(vx_max, new_vymax)
+
+    data.insert(12, 'Titan fpa (deg)', titan_fpa_max*(180/np.pi), True)
+    data.insert(13, 'Titan v1', vmax, True)
+    
+    data.to_hdf(filepath + filename + r'.hdf', key = 'df')
+    
+    
+if __name__ == '__main__':
+
+################################ CALCULATIONS #################################
+    
+    # load pre-existing file into the dataframe
+    # UPDATE FILEPATH BEFORE RUNNING
+    filepath = r'C:\Users\saman\OneDrive\Desktop\InterplanetarySeniorDesign'
+    filename = r'\3D_potato'
+    data = pd.read_hdf(filepath + filename + r'.hdf')
+    
+    # define some constants
+    mu = 37.931*10**6  # saturn's gravitational parameter
+    saturn_equatorial = 60268  # km
+    saturn_polar = 54364  # km
+    r_titan = 1.2*10**6  # km
+    r_encel = 238000  # km
+    v_titan = 5.57  # km/s
+    
+    # flight path angle array
+    gamma = np.linspace(1, 360, 360)
+    # inclination angle array
+    inc = np.linspace(1, 360, 360)
+
+################################## PLOTTING ###################################
+    
+    # NOTES:
+    # first input for each function is inclination second is flight path angle
+    # both can range from 0 - 360 degrees
+    # each function call will generate a new plot
+    
+    # plot a single inclination curve
+    plot_single_inclination(45, 360)
+    
+    # plot the inclination curves in multiples of 10
+    inclination = [20, 21, 22, 23, 24, 25]
+    plot_multiple_inclinations(inclination, 360) 
+    
+    # plot the entire first quadrant
+    plot_inclination_range(90, 180)
+    
