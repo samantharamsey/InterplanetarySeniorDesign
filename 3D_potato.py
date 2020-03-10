@@ -253,6 +253,8 @@ def plot_single_inclination(inclination, gamma):
                 allowable range: 0 < gamma < 360
     '''
     
+    plt.rcParams.update({'font.size': 10})
+    plt.rcParams['font.family'] = 'times new roman'
     fpa = data['Saturn fpa (deg)'] < gamma
     lower = data['Saturn inclination (deg)'] < inclination + 1
     upper = data['Saturn inclination (deg)'] > inclination - 1
@@ -300,6 +302,8 @@ def plot_multiple_inclinations(inclination, gamma):
                 as a single number; 0 < gamma < 360
     '''
     
+    plt.rcParams.update({'font.size': 12})
+    plt.rcParams['font.family'] = 'times new roman'
     fig = plt.figure()
     ax = fig.add_subplot(111, projection = '3d')
     for i in inclination:
@@ -334,6 +338,10 @@ def plot_multiple_inclinations(inclination, gamma):
     ax.set_xlabel('Radial Velocity Component (km/s)')
     ax.set_ylabel('Tangential Velocity Component (km/s)')
     ax.set_zlabel('Vertical Velocity Component (km/s)')
+    plt.title('Family of Acceptable Post-AGA Velocity Vectors wrt Saturn')
+#    plt.legend(['Trajectories with $r_p$ about equal to $r_{enceladus}$',
+#                'Escape Velocity Constraint',
+#                'Trajectories with Perigee Radius Smaller than Saturn\'s Radius',], loc=3)
     plt.show()
   
 
@@ -347,7 +355,9 @@ def plot_inclination_range(inclination, gamma):
         gamma - the final flight path angle to plot in degrees
                 as a single number; 0 < gamma < 360
     '''      
-      
+    
+    plt.rcParams.update({'font.size': 10})
+    plt.rcParams['font.family'] = 'times new roman'
     fpa = data['Saturn fpa (deg)'] < gamma
     inc = data['Saturn inclination (deg)'] < inclination
     new_data = data[fpa]
@@ -379,6 +389,11 @@ def plot_inclination_range(inclination, gamma):
     ax.set_xlabel('Radial Velocity Component (km/s)')
     ax.set_ylabel('Tangential Velocity Component (km/s)')
     ax.set_zlabel('Vertical Velocity Component (km/s)')
+    plt.title('Family of Acceptable Post-AGA Velocity Vectors wrt Saturn')
+#    plt.legend(['Trajectories with $r_p$ about equal to $r_{enceladus}$',
+#                'Escape Velocity Constraint',
+#                'Trajectories with Perigee Radius Smaller than Saturn\'s Radius',
+#                'Minimum Required Velocity'], loc=8)
     plt.show()
     
     
@@ -441,12 +456,12 @@ if __name__ == '__main__':
     # each function call will generate a new plot
     
     # plot a single inclination curve
-    plot_single_inclination(45, 360)
+#    plot_single_inclination(45, 360)
     
     # plot the inclination curves in multiples of 10
     inclination = [1, 10, 20, 30, 40, 50, 60, 70, 80, 89]
     plot_multiple_inclinations(inclination, 360) 
     
     # plot the entire first quadrant
-    plot_inclination_range(90, 90)
+#    plot_inclination_range(90, 90)
     
