@@ -67,6 +67,9 @@ if __name__ == '__main__':
     j = 3
     v1_ex = chop(v1_ex, j)
     turn_angle = chop(turn_angle, j)
+    tot = 0
+    min = 1000
+    max = 0
 
     for i in range(1, script_data.shape[0]):
 
@@ -75,14 +78,28 @@ if __name__ == '__main__':
             v_count += 1
             print("velocity", i)
 
-        # check longitudes of ascending node
+        # check flight path angle and turn angle
         if turn_angle == m.radians(chop(fpa.loc[i], j)):
             fpa_count += 1
             print("turn/flight path angle", i)
         else:
             diff = m.fabs(turn_angle - m.radians(chop(fpa.loc[i], j)))
+            tot += diff
+            if diff > max:
+                max = diff
+            elif diff < min:
+                min = diff
             # print(turn_angle, m.radians(chop(fpa.loc[i], j)))
             # print(diff)
+
+    # find out some stuff about the difference between turn angle and fpa to figure out what's going wrong
+        # average difference
+        # minimum difference
+        # maximum difference
+    avg = tot / (i + 1)
+    print(avg)
+    print(min)
+    print(max)
 
     print(v_count)
     print(fpa_count)
