@@ -33,12 +33,13 @@ if __name__ == '__main__':
     v1 = script_data['Titan v1']
     fpa = script_data['Titan fpa (deg)']
 
-    # pull out values from the post data that we'll actually use
+    # pull out entry and exit values from the post data
     v1_post = post_data['veli']
-    v1_post = v1_post.iloc[0] / 1000
+    v1_en = v1_post.iloc[0] / 1000
+    v1_ex = v1_post.iloc[1] / 1000
     e_post = post_data['eccen']
-    e_in = e_post.iloc[0]
-    e_out = e_post.iloc[1]
+    e_en = e_post.iloc[0]
+    e_ex = e_post.iloc[1]
     la_post = post_data['longi']
     la_en = la_post.iloc[0]
     la_ex = la_post.iloc[1]
@@ -54,8 +55,8 @@ if __name__ == '__main__':
     phi2 = lat_ex
     delta_lambda = la_ex - la_en
     delta_sigma = m.acos(m.sin(phi1)*m.sin(phi2) + m.cos(phi1)*m.cos(phi2)*m.cos(delta_lambda))
-    ta_inf_i = m.acos(-1/e_in)
-    ta_inf_o = m.acos(-1/e_out)
+    ta_inf_i = m.acos(-1/e_en)
+    ta_inf_o = m.acos(-1/e_ex)
     turn_angle = m.fabs(ta_inf_i - ta_en) + m.fabs(ta_inf_o - ta_ex) + m.degrees(delta_sigma) - 180
 
     # compare the output of POST to the output of the script
@@ -65,13 +66,13 @@ if __name__ == '__main__':
 
     # set number of decimal places to truncate vales to for comparison
     j = 3
-    v1_post = chop(v1_post, j)
+    v1_ex = chop(v1_ex, j)
     turn_angle = chop(turn_angle, j)
 
     for i in range(1, script_data.shape[0]):
 
         # check velocities
-        if v1_post == chop(v1.loc[i], j):
+        if v1_ex == chop(v1.loc[i], j):
             v_count += 1
             print("velocity", i)
 
