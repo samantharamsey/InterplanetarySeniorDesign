@@ -15,13 +15,13 @@ def convert_reference_frame_dataframe(data, filepath, filename, body2_code):
     # pull necessary columns out of dataframe
     if body2_code == 0:
         v1_max_o = data['Saturn v1 max']
-        inc_o = data['Saturn fpa (deg']
+        inc_o = data['Saturn fpa (deg)']
         fpa_o = data['Saturn inclination (deg)']
         v_body2 = 5.57
 
     elif body2_code == 1:
         v1_max_o = data['Titan v1 max']
-        inc_o = data['Titan fpa (deg']
+        inc_o = data['Titan fpa (deg)']
         fpa_o = data['Titan inclination (deg)']
         v_body2 = 9.68
 
@@ -99,3 +99,15 @@ def convert_reference_frame_single_input(v1_max_o, inc_o, fpa_o, body2_code):
     elif body2_code == 1:
         print('Saturn fpa (deg)', converted_fpa_max * (180 / np.pi))
         print('Saturn v1', v_max_converted)
+
+
+def main():
+    path = r'C:\Spice_Kernels'
+    name = r'\3D_potato'
+    data = pd.read_hdf(path + name + r'.hdf')
+
+    convert_reference_frame_dataframe(data, path, name, 0)
+
+
+if __name__ == '__main__':
+    main()
