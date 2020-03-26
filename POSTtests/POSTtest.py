@@ -44,8 +44,8 @@ if __name__ == '__main__':
     la_en = la_post.iloc[0]
     la_ex = la_post.iloc[1]
     ta_post = post_data['truan']
-    ta_en = ta_post.iloc[0]
-    ta_ex = ta_post.iloc[1]
+    ta_en = m.radians(ta_post.iloc[0])
+    ta_ex = m.radians(ta_post.iloc[1])
     lat_post = post_data['gclat']
     lat_en = lat_post.iloc[0]
     lat_ex = lat_post.iloc[1]
@@ -53,14 +53,13 @@ if __name__ == '__main__':
     # calculate the things
     phi1 = lat_en
     phi2 = lat_ex
-    delta_lambda = la_ex - la_en
-    delta_sigma = m.acos(m.sin(phi1)*m.sin(phi2) + m.cos(phi1)*m.cos(phi2)*m.cos(delta_lambda))
+    delta_lambda = m.fabs(la_ex - la_en)
+    delta_sigma = m.acos(m.sin(phi1) * m.sin(phi2) + m.cos(phi1) * m.cos(phi2) * m.cos(delta_lambda))
     ta_inf_i = m.acos(-1/e_en)
     ta_inf_o = m.acos(-1/e_ex)
-    turn_angle = m.fabs(ta_inf_i - ta_en) + m.fabs(ta_inf_o - ta_ex) + m.degrees(delta_sigma) - 180
+    turn_angle = m.fabs(ta_inf_i - ta_en) + m.fabs(ta_inf_o - ta_ex) + delta_sigma - 2*m.pi
 
     # compare the output of POST to the output of the script
-    listy = []
     v_count = 0
     fpa_count = 0
 
@@ -77,9 +76,13 @@ if __name__ == '__main__':
             print("velocity", i)
 
         # check longitudes of ascending node
-        if turn_angle == chop(fpa.loc[i], j):
+        if turn_angle == m.radians(chop(fpa.loc[i], j)):
             fpa_count += 1
             print("turn/flight path angle", i)
+        else:
+            diff = m.fabs(turn_angle - m.radians(chop(fpa.loc[i], j)))
+            # print(turn_angle, m.radians(chop(fpa.loc[i], j)))
+            # print(diff)
 
     print(v_count)
     print(fpa_count)
