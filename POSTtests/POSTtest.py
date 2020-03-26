@@ -101,5 +101,5 @@ if __name__ == '__main__':
     print(min)
     print(max)
 
-    print(v_count)
-    print(fpa_count)
+    print("number of cases with matching velocities:", v_count)
+    print("number of cases with matching turn/flight path angles:", fpa_count)
