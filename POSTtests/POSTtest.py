@@ -97,9 +97,9 @@ if __name__ == '__main__':
         # minimum difference
         # maximum difference
     avg = tot / (i + 1)
-    print(avg)
-    print(min)
-    print(max)
+    print("average difference in turn angle & FPA", avg)
+    print("minimum difference in turn angle & FPA", min)
+    print("maximum difference in turn angle & FPA", max)
 
     print("number of cases with matching velocities:", v_count)
     print("number of cases with matching turn/flight path angles:", fpa_count)
