@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
+
 def calc_vinf_titan(v_inf, dec, intercept):
     '''
     calculates v_infinity wrt Titan
@@ -36,37 +37,22 @@ def calc_vinf_titan(v_inf, dec, intercept):
     vz1 = v1*np.sin(dec)
     
     # titans velocity components based on quadrant
-    if 0 < intercept < 90:
+    if 0 < intercept < 90 or 90 < intercept < 180 or 180 < intercept < 270 or 270 < intercept < 360:
         vxt = v_titan*np.sin(inter)
         vyt = v_titan*np.cos(inter)
         vzt = 0
     elif intercept == 90:
         vxt = v_titan
         vyt = 0
-        vzt = 0 
-    elif 90 < intercept < 180:
-        phi = 180 - inter
-        vxt = v_titan*np.sin(phi)
-        vyt = -v_titan*np.cos(phi)
         vzt = 0
     elif intercept == 180:
         vxt = 0
         vyt = -v_titan
         vzt = 0
-    elif 180 < intercept < 270:
-        phi = 270 - inter
-        vxt = -v_titan*np.cos(phi)
-        vyt = -v_titan*np.sin(phi)
-        vzt = 0
     elif intercept == 270:
         vxt = -v_titan
         vyt = 0
         vzt = 0 
-    elif 270 < intercept < 360:
-        phi = 360 - inter
-        vxt = -v_titan*np.sin(phi)
-        vyt = v_titan*np.cos(phi)
-        vzt = 0
     elif intercept == 360 or intercept == 0:
         vxt = 0
         vyt = v_titan
@@ -84,12 +70,11 @@ def calc_vinf_titan(v_inf, dec, intercept):
     v_inf_mag = np.sqrt(v_infx**2 + v_infy**2 + v_infz**2)
     
     return v_infx, v_infy, v_infz, v_inf_mag
-        
-    
+
 
 if __name__ == '__main__':
     
-    filepath = r'C:\Users\saman\OneDrive\Desktop\InterplanetarySeniorDesign\arrival_patch'
+    filepath = r'C:\Spice_Kernels'
     filename = r'\10_declination'
     data = pd.DataFrame([])
     v_infx = []
@@ -121,4 +106,4 @@ if __name__ == '__main__':
     plt.xlabel('intercept location (deg)')
     plt.legend(['x component', 'y component', 'z component'])
     plt.title('V infinity wrt Titan: v_inf wrt Saturn = 6, dec = 10')
-    
+    plt.show()

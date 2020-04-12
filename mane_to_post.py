@@ -20,7 +20,7 @@ def main():
     vv_inf = [0, v_inf * m.cos(dec_mane), v_inf * m.sin(dec_mane)]
 
     # find titan's velocity somehow
-    v_titan = [1, 1, 0]
+    v_titan = [1, 1, 0]     # placeholder - put real values in
     total_v_t = vv_inf + v_titan
 
 

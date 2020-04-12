@@ -76,7 +76,7 @@ if __name__ == '__main__':
         # check velocities
         if v1_ex == chop(v1.loc[i], j):
             v_count += 1
-            print("velocity", i)
+            # print("velocity", i)
 
         # check flight path angle and turn angle
         if turn_angle == m.radians(chop(fpa.loc[i], j)):
