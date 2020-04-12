@@ -64,7 +64,7 @@ if __name__ == '__main__':
     fpa_count = 0
 
     # set number of decimal places to truncate vales to for comparison
-    j = 3
+    j = 2
     v1_ex = chop(v1_ex, j)
     turn_angle = chop(turn_angle, j)
     tot = 0

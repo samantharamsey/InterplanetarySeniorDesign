@@ -24,17 +24,6 @@ if __name__ == '__main__':
     filepath2 = r'C:\Users\saman\OneDrive\Desktop\senior_design'
     filename2 = r'\8000km2'
     test_data2 = pd.read_csv(filepath2 + filename2 + r'.hdf', delim_whitespace = True)
-#    
-#    # want to compare each line of comp_data to every line of calc_data
-#    # to see which comp_data cases will result in any satisfactory orbit
-#    listy = []
-#    print("hey")
-#    #print(comp_data)
-#    for i in range(1, calc_data.shape[0]):
-#        print(calc_data[i])
-#        #if comp_data == line:
-#            #print("found")
-#            #listy.append(comp_data)
     
     
     theta = np.linspace(0, 2*np.pi, 360)
