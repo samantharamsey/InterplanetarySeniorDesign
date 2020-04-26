@@ -12,22 +12,21 @@ import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
     
-    # load in the data from POST - Aerocapture
-    filepath1 = r'C:\Users\saman\OneDrive\Desktop\senior_design'
-    filename1 = r'\8000km'
-    test_data = pd.read_csv(filepath1 + filename1 + r'.hdf', delim_whitespace = True)
-    # create a new DF with only the last lines
-    comp_data = pd.DataFrame([])
-    comp_data = comp_data.append(test_data[-1:])
+    # load in the data from POST - cl off
+    filepath = r'C:\Users\saman\OneDrive\Desktop\InterplanetarySeniorDesign\POSTdata'
+    filename1 = r'\cl_off'
+    test_data = pd.read_csv(filepath + filename1 + r'.hdf', delim_whitespace = True)
     
-    # load in the data from POST part 2 - Aerogravity Assist
-    filepath2 = r'C:\Users\saman\OneDrive\Desktop\senior_design'
-    filename2 = r'\8000km2'
-    test_data2 = pd.read_csv(filepath2 + filename2 + r'.hdf', delim_whitespace = True)
+    # load in the data from POST part 2 - clcd off
+    filename2 = r'\clcd_off'
+    test_data2 = pd.read_csv(filepath + filename2 + r'.hdf', delim_whitespace = True)
     
+    # load in the data from POST part 2 - clcd on
+    filename3 = r'\clcd_on'
+    test_data3 = pd.read_csv(filepath + filename3 + r'.hdf', delim_whitespace = True)
     
     theta = np.linspace(0, 2*np.pi, 360)
-    r = np.full((360), 3574*10**3)
+    r = np.full((360), 3575*10**3)
     
     plt.rcParams.update({'font.size': 10})
     plt.rcParams['font.family'] = 'times new roman'
@@ -42,21 +41,23 @@ if __name__ == '__main__':
     ax.xaxis.grid(linewidth = 0)
     ax.plot((test_data['longi'] + 4)*(np.pi/180), test_data['gcrad'])
     ax.plot((test_data2['longi'] + 4)*(np.pi/180), test_data2['gcrad'], ls = 'dashed')
+    ax.plot((test_data3['longi'] + 4)*(np.pi/180), test_data3['gcrad'], ls = 'dotted')
     ax.plot(theta, r)
-    circle = plt.Circle((0.0, 0.0), 2574*10**3, transform = ax.transData._b, 
+    circle = plt.Circle((0.0, 0.0), 2575*10**3, transform = ax.transData._b, 
                         color = 'grey', alpha = 0.5)
     ax.add_artist(circle)
     plt.title('Titan Aerocapture')
-    plt.legend(['Titan Aerocapture Trajectory', 
-                'Titan Aerogravity Assist Trajectory',
+    plt.legend(['CL off', 
+                'CLCD off',
+                'CLCD on',
                 'Titan Atmospheric Radius'], loc = 3)
-#    plt.figtext(0.7, 0.8, 'Entry velocity = 8.29 $km/s$')
-#    plt.figtext(0.7, 0.77, 'Coefficient of lift = $0.359$')
-#    plt.figtext(0.7, 0.74, 'Coefficient of drag = $1.18$')
-#    plt.figtext(0.7, 0.71, 'Mass = 600 $kg$')
-#    plt.figtext(0.7, 0.68, 'Reference area = 1 $m^2$')
-#    plt.figtext(0.7, 0.65, 'Entry angle = -36.77$^{\circ}$')
-#    plt.figtext(0.7, 0.62, 'Bank angle = 180$^{\circ}$')
+    plt.figtext(0.7, 0.8,  'Atmospheric Entry Velocity = 8.29 km/s')
+    plt.figtext(0.7, 0.77, 'Coefficient of Lift = 0.359')
+    plt.figtext(0.7, 0.74, 'Coefficient of Drag = 1.18')
+    plt.figtext(0.7, 0.71, 'Mass = 600 kg')
+    plt.figtext(0.7, 0.68, 'Reference Area = 1 m$^2$')
+    plt.figtext(0.7, 0.65, 'Entry Angle = -36.77$^{\circ}$')
+    plt.figtext(0.7, 0.62, 'Bank Angle = 180$^{\circ}$')
     
     fig2 = plt.figure()
     ax2 = fig2.add_subplot(111, polar = True)
@@ -67,22 +68,24 @@ if __name__ == '__main__':
     ax2.set_rlabel_position(270)
     ax2.yaxis.grid(linewidth = 0.1)
     ax2.xaxis.grid(linewidth = 0)
-    ax2.plot((test_data['longi'][2553:3787] + 4)*(np.pi/180), test_data['gcrad'][2553:3787])
-    ax2.plot((test_data2['longi'][2553:3370] + 4)*(np.pi/180), test_data2['gcrad'][2553:3370], ls = 'dashed')
+    ax2.plot((test_data['longi'][2615:3437] + 4)*(np.pi/180), test_data['gcrad'][2615:3437])
+    ax2.plot((test_data2['longi'][2615:3370] + 4)*(np.pi/180), test_data2['gcrad'][2615:3370], ls = 'dashed')
+    ax2.plot((test_data3['longi'][2615:3786] + 4)*(np.pi/180), test_data3['gcrad'][2615:3786], ls = 'dotted')
     ax2.plot(theta, r)
-    circle2 = plt.Circle((0.0, 0.0), 2574*10**3, transform = ax2.transData._b, 
+    circle2 = plt.Circle((0.0, 0.0), 2575*10**3, transform = ax2.transData._b, 
                         color = 'grey', alpha = 0.5)
     ax2.add_artist(circle2)
     plt.title('Titan Aerogravity Assist')
-    plt.legend(['Titan Aerogravity Assist Trajectory', 
-                'Titan Gravity Assist Trajectory',
+    plt.legend(['CL off', 
+                'CLCD off',
+                'CLCD on',
                 'Titan Atmospheric Radius'], loc = 3)
-#    plt.figtext(0.7, 0.8, 'Entry velocity = 8.29 $km/s$')
-#    plt.figtext(0.7, 0.77, 'Coefficient of lift = $0.359$')
-#    plt.figtext(0.7, 0.74, 'Coefficient of drag = $1.18$')
-#    plt.figtext(0.7, 0.71, 'Mass = 600 $kg$')
-#    plt.figtext(0.7, 0.68, 'Reference area = 1 $m^2$')
-#    plt.figtext(0.7, 0.65, 'Entry angle = -36.77$^{\circ}$')
-#    plt.figtext(0.7, 0.62, 'Bank angle = 180$^{\circ}$')
+    plt.figtext(0.7, 0.8,  'Atmospheric Entry Velocity = 8.29 km/s')
+    plt.figtext(0.7, 0.77, 'Coefficient of Lift = 0.359')
+    plt.figtext(0.7, 0.74, 'Coefficient of Drag = 1.18')
+    plt.figtext(0.7, 0.71, 'Mass = 600 kg')
+    plt.figtext(0.7, 0.68, 'Reference Area = 1 m$^2$')
+    plt.figtext(0.7, 0.65, 'Entry Angle = -36.77$^{\circ}$')
+    plt.figtext(0.7, 0.62, 'Bank Angle = 180$^{\circ}$')
     
     plt.show()
