@@ -22,7 +22,7 @@ def calc_vinf_titan(v_inf, dec, intercept):
     Returns:
         v_inf_mag - v_infinity wrt Titan magnitude
     '''
-    mu  = 3.795*10**7
+    mu = 3.795*10**7
     r = 1.22*10**6
     v_titan = 5.57
     dec = dec*(np.pi/180)
@@ -35,28 +35,23 @@ def calc_vinf_titan(v_inf, dec, intercept):
     vx1 = 0
     vy1 = v1*np.cos(dec)
     vz1 = v1*np.sin(dec)
-    
+
+    vxt = 0
+    vyt = 0
+    vzt = 0
+
     # titans velocity components based on quadrant
     if 0 < intercept < 90 or 90 < intercept < 180 or 180 < intercept < 270 or 270 < intercept < 360:
         vxt = v_titan*np.sin(inter)
         vyt = v_titan*np.cos(inter)
-        vzt = 0
     elif intercept == 90:
         vxt = v_titan
-        vyt = 0
-        vzt = 0
     elif intercept == 180:
-        vxt = 0
         vyt = -v_titan
-        vzt = 0
     elif intercept == 270:
         vxt = -v_titan
-        vyt = 0
-        vzt = 0 
     elif intercept == 360 or intercept == 0:
-        vxt = 0
         vyt = v_titan
-        vzt = 0
     else:
         print('error: intercept location')
         breakpoint()
@@ -81,7 +76,7 @@ if __name__ == '__main__':
     v_infy = []
     v_infz = []
     for i in range(360):
-        resultx, resulty, resultz, resultmag = calc_vinf_titan(6, 10, i)
+        resultx, resulty, resultz, resultmag = calc_vinf_titan(5.7622, 14.2513, i)
         v_infx.append(resultx)
         v_infy.append(resulty)
         v_infz.append(resultz)
@@ -91,11 +86,11 @@ if __name__ == '__main__':
                                          'v_infinity x component': resultx,
                                          'v_infinity y component': resulty,
                                          'v_infinity z component': resultz},
-                                         index=[0]), ignore_index=True)
+                                        index=[0]), ignore_index=True)
     # send results to excel
-    data.to_csv(filepath + filename + r'.csv', index = False)
+    data.to_csv(filepath + filename + r'.csv', index=False)
     # send results to HDF5 - faster loading
-    data.to_hdf(filepath + filename + r'.hdf', key = 'df')
+    data.to_hdf(filepath + filename + r'.hdf', key='df')
     
     # plot stuff
     fig1 = plt.figure()
