@@ -37,7 +37,7 @@ def calc_titan_vel(vx1, vy1, vz1, intercept):
     v_inf_x = vx1 + vxt
     v_inf_y = vy1 + vyt
     v_inf_z = vz1 + vzt
-    v_inf_mag = m.sqrt(v_inf_x**2 + v_inf_y**2 + v_inf_z**2)
+    v_inf_mag = np.linalg.norm([v_inf_x, v_inf_y, v_inf_z])
 
     return v_inf_x, v_inf_y, v_inf_z, v_inf_mag
 
@@ -63,48 +63,54 @@ def post_to_patch(POST_filepath, POST_filename, patch_filepath, patch_filename):
     # load in the data from POST
     post_data = pd.read_excel(POST_filepath + POST_filename + r'.xlsx')
 
-    vx1 = post_data['vxi'].iloc[-1]/1000
-    vy1 = post_data['vyi'].iloc[-1]/1000
-    vz1 = post_data['vzi'].iloc[-1]/1000
+    vx_post = post_data['vxi'].iloc[-1]/1000
+    vy_post = post_data['vyi'].iloc[-1]/1000
+    vz_post = post_data['vzi'].iloc[-1]/1000
     intercept = post_data['trunmx'].iloc[-1]
 
     # load in the final orbit data from the script calculations
     script_data = pd.read_hdf(patch_filepath + patch_filename + r'.hdf')
     # pull out the titan-centered velocity
     v1 = script_data['Titan v1']
-    # print(script_data.columns)
 
-    [v_inf_x, v_inf_y, v_inf_z, v_inf_mag] = calc_titan_vel(vx1, vy1, vz1, intercept)
+    [vx_post, vy_post, vz_post, v_inf_mag] = calc_titan_vel(vx_post, vy_post, vz_post, intercept)
 
     # compare the output of POST to the output of the script
-    v_count = 0
-    tot = 0
-    min = 1000
-    max = 0
+    v_mag_count = 0
+    v_comp_count = 0
     j = 3
     v_inf_mag = chop(v_inf_mag, j)
+    good_indexes = []
+    tol = 0.1
 
     for i in range(1, script_data.shape[0]):
-        # print(v_inf_mag, chop(v1.loc[i], j))
         # check velocities after truncating decimal places for the script output
-        if v_inf_mag == chop(v1.loc[i], j):
-            v_count += 1
-        # this isn't relevant, just a check
-        else:
-            diff = m.fabs(v_inf_mag - chop(v1.loc[i], j))
-            tot += diff
-        if diff > max:
-            max = diff
-        elif diff < min:
-            min = diff
+        #if v_inf_mag == chop(v1.loc[i], j):
+        if m.fabs(v_inf_mag - v1.loc[i]) < tol:
+            v_mag_count += 1
+            v1_script = m.radians(script_data['Saturn v1 max'].loc[i])
+            inc = m.radians(script_data['Saturn inclination (deg)'].loc[i])
+            fpa = m.radians(script_data['Saturn fpa (deg)'].loc[i])
 
-    avg = tot / (i + 1)
-    print("average difference in velocities", avg)
-    print("minimum difference in velocities", min)
-    print("maximum difference in velocities", max)
+            vx_script = v1_script * np.cos(inc) * np.sin(fpa)
+            vy_script = v1_script * np.cos(inc) * np.cos(fpa) - v_titan
+            vz_script = v1_script * np.sin(inc)
+
+            #if vx_script == vx_post and vy_script == vy_post and vz_script == vz_post:
+            if m.fabs(vx_script - vx_post) < tol and m.fabs(vy_script - vy_post) < tol and m.fabs(vz_script - vz_post) < tol:
+                v_comp_count += 1
+                good_indexes.append(i)
+            if m.fabs(vx_script - vx_post) < tol:
+                print("x")
+            if m.fabs(vy_script - vy_post) < tol:
+                print("xy")
+            if m.fabs(vz_script - vz_post) < tol:
+                print("z")
 
     # print out the stats on the POST-script comparison
-    print("number of cases with matching velocities:", v_count)
+    print("number of cases with matching velocity magnitudes:", v_mag_count)
+    print("number of cases with matching velocity components:", v_comp_count)
+    print(good_indexes)
 
 
 def mane_to_post(filepath, filename):
