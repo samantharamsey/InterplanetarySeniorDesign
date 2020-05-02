@@ -9,11 +9,6 @@ r = 1.22*10**6
 v_titan = 5.57
 
 
-def chop(num, digits) -> float:
-    step = 10.0 ** digits
-    return m.trunc(step*num) / step
-
-
 def calc_titan_vel(vx1, vy1, vz1, intercept):
     vxt = 0
     vyt = 0
@@ -57,7 +52,7 @@ def calc_vinf_for_post(v_inf, dec, intercept):
 def post_to_patch(POST_filepath, POST_filename, patch_filepath, patch_filename):
     """
     POST -> Patch
-    Takes output from POST and compares it to
+    Takes output from POST and compares it to the sets of orbit data
     """
 
     # load in the data from POST
@@ -66,29 +61,32 @@ def post_to_patch(POST_filepath, POST_filename, patch_filepath, patch_filename):
     vx_post = post_data['vxi'].iloc[-1]/1000
     vy_post = post_data['vyi'].iloc[-1]/1000
     vz_post = post_data['vzi'].iloc[-1]/1000
-    intercept = post_data['trunmx'].iloc[-1]
+
+    """IS THIS CORRECT"""
+    intercept = 60
 
     # load in the final orbit data from the script calculations
     script_data = pd.read_hdf(patch_filepath + patch_filename + r'.hdf')
     # pull out the titan-centered velocity
     v1 = script_data['Titan v1']
 
+    """IS THIS CORRECT - this is for going saturn -> titan, we're going titan -> titan??"""
     [vx_post, vy_post, vz_post, v_inf_mag] = calc_titan_vel(vx_post, vy_post, vz_post, intercept)
 
     # compare the output of POST to the output of the script
     v_mag_count = 0
     v_comp_count = 0
-    j = 3
-    v_inf_mag = chop(v_inf_mag, j)
+    x_comp_count = 0
+    y_comp_count = 0
+    z_comp_count = 0
     good_indexes = []
-    tol = 0.1
+    tol = 0.5
 
     for i in range(1, script_data.shape[0]):
         # check velocities after truncating decimal places for the script output
-        #if v_inf_mag == chop(v1.loc[i], j):
         if m.fabs(v_inf_mag - v1.loc[i]) < tol:
             v_mag_count += 1
-            v1_script = m.radians(script_data['Saturn v1 max'].loc[i])
+            v1_script = script_data['Saturn v1 max'].loc[i]
             inc = m.radians(script_data['Saturn inclination (deg)'].loc[i])
             fpa = m.radians(script_data['Saturn fpa (deg)'].loc[i])
 
@@ -96,20 +94,25 @@ def post_to_patch(POST_filepath, POST_filename, patch_filepath, patch_filename):
             vy_script = v1_script * np.cos(inc) * np.cos(fpa) - v_titan
             vz_script = v1_script * np.sin(inc)
 
-            #if vx_script == vx_post and vy_script == vy_post and vz_script == vz_post:
             if m.fabs(vx_script - vx_post) < tol and m.fabs(vy_script - vy_post) < tol and m.fabs(vz_script - vz_post) < tol:
                 v_comp_count += 1
                 good_indexes.append(i)
             if m.fabs(vx_script - vx_post) < tol:
-                print("x")
+                x_comp_count += 1
+                #print("x")
             if m.fabs(vy_script - vy_post) < tol:
-                print("xy")
+                y_comp_count += 1
+                #print("y")
             if m.fabs(vz_script - vz_post) < tol:
-                print("z")
+                z_comp_count += 1
+                #print("z")
 
     # print out the stats on the POST-script comparison
     print("number of cases with matching velocity magnitudes:", v_mag_count)
-    print("number of cases with matching velocity components:", v_comp_count)
+    print("number of cases with all matching velocity components:", v_comp_count)
+    print("number of cases with matching x velocity components:", x_comp_count)
+    print("number of cases with matching y velocity components:", y_comp_count)
+    print("number of cases with matching z velocity components:", z_comp_count)
     print(good_indexes)
 
 
