@@ -14,6 +14,10 @@ def calc_titan_vel(vx1, vy1, vz1, intercept):
     vyt = 0
     vzt = 0
 
+    # TODO figure out if this is right or not
+    if intercept < 0:
+        intercept += 360
+
     if 0 < intercept < 90 or 90 < intercept < 180 or 180 < intercept < 270 or 270 < intercept < 360:
         vxt = v_titan * m.sin(m.radians(intercept))
         vyt = v_titan * m.cos(m.radians(intercept))
@@ -27,7 +31,7 @@ def calc_titan_vel(vx1, vy1, vz1, intercept):
         vyt = v_titan
     else:
         print('error: intercept location')
-        breakpoint()
+        return -1, -1, -1, -1
 
     v_inf_x = vx1 + vxt
     v_inf_y = vy1 + vyt
@@ -49,11 +53,16 @@ def calc_vinf_for_post(v_inf, dec, intercept):
     return calc_titan_vel(vx1, vy1, vz1, intercept)
 
 
-def post_to_patch(POST_filepath, POST_filename, patch_filepath, patch_filename):
+def post_to_patch(POST_filepath, POST_filename, patch_filepath, patch_filename, initial_intercept):
     """
     POST -> Patch
     Takes output from POST and compares it to the sets of orbit data
     """
+
+    # load in the final orbit data from the script calculations
+    script_data = pd.read_hdf(patch_filepath + patch_filename + r'.hdf')
+    # pull out the titan-centered velocity
+    v1 = script_data['Titan v1']
 
     # load in the data from POST
     post_data = pd.read_excel(POST_filepath + POST_filename + r'.xlsx')
@@ -62,16 +71,24 @@ def post_to_patch(POST_filepath, POST_filename, patch_filepath, patch_filename):
     vy_post = post_data['vyi'].iloc[-1]/1000
     vz_post = post_data['vzi'].iloc[-1]/1000
 
-    """IS THIS CORRECT"""
-    intercept = 60
+    # from the post data - en is entry value, ex is exit value
+    la_en = post_data['longi'].iloc[0]
+    la_ex = post_data['longi'].iloc[1]
+    ta_mx_en = m.radians(post_data['trunmx'].iloc[0])
+    ta_mx_ex = m.radians(post_data['trunmx'].iloc[1])
+    ta_en = m.radians(post_data['truan'].iloc[0])
+    ta_ex = m.radians(post_data['truan'].iloc[1])
 
-    # load in the final orbit data from the script calculations
-    script_data = pd.read_hdf(patch_filepath + patch_filename + r'.hdf')
-    # pull out the titan-centered velocity
-    v1 = script_data['Titan v1']
+    # calculate turn angle from the latitudes, eccentricities, etc TODO validate this formula
+    turn_atmos = m.degrees(m.acos(m.sin(m.radians(la_en)) * m.sin(m.radians(la_ex)) + m.cos(m.radians(la_en)) *
+                                  m.cos(m.radians(la_ex)) * m.cos(m.radians(ta_ex-ta_en))))
+    turn_angle = m.fabs(-ta_mx_en - ta_en) + m.fabs(ta_mx_ex - ta_ex) + turn_atmos - 180
 
-    """IS THIS CORRECT - this is for going saturn -> titan, we're going titan -> titan??"""
-    [vx_post, vy_post, vz_post, v_inf_mag] = calc_titan_vel(vx_post, vy_post, vz_post, intercept)
+    final_intercept = initial_intercept + turn_angle
+    print(final_intercept)
+    print(turn_angle)
+
+    [vx_post, vy_post, vz_post, v_inf_mag] = calc_titan_vel(vx_post, vy_post, vz_post, final_intercept)
 
     # compare the output of POST to the output of the script
     v_mag_count = 0
@@ -91,7 +108,7 @@ def post_to_patch(POST_filepath, POST_filename, patch_filepath, patch_filename):
             fpa = m.radians(script_data['Saturn fpa (deg)'].loc[i])
 
             vx_script = v1_script * np.cos(inc) * np.sin(fpa)
-            vy_script = v1_script * np.cos(inc) * np.cos(fpa) - v_titan
+            vy_script = v1_script * np.cos(inc) * np.cos(fpa) # - v_titan   TODO figure out why i get matches with this is commented out
             vz_script = v1_script * np.sin(inc)
 
             if m.fabs(vx_script - vx_post) < tol and m.fabs(vy_script - vy_post) < tol and m.fabs(vz_script - vz_post) < tol:
@@ -164,4 +181,4 @@ Uncomment what you want to run
 """
 if __name__ == '__main__':
     # mane_to_post( r'C:\Spice_Kernels', r'\10_declination')
-    post_to_patch(r'C:\Spice_Kernels', r'\tin7_2', r'C:\Spice_Kernels',  r'\3D_potato')
+    post_to_patch(r'C:\Spice_Kernels', r'\tin7_2', r'C:\Spice_Kernels',  r'\3D_potato', 60)
