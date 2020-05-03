@@ -85,8 +85,6 @@ def post_to_patch(POST_filepath, POST_filename, patch_filepath, patch_filename, 
     turn_angle = m.fabs(-ta_mx_en - ta_en) + m.fabs(ta_mx_ex - ta_ex) + turn_atmos - 180
 
     final_intercept = initial_intercept + turn_angle
-    print(final_intercept)
-    print(turn_angle)
 
     [vx_post, vy_post, vz_post, v_inf_mag] = calc_titan_vel(vx_post, vy_post, vz_post, final_intercept)
 
@@ -97,7 +95,9 @@ def post_to_patch(POST_filepath, POST_filename, patch_filepath, patch_filename, 
     y_comp_count = 0
     z_comp_count = 0
     good_indexes = []
-    tol = 0.5
+    tol = 0.4
+
+    good = pd.DataFrame()
 
     for i in range(1, script_data.shape[0]):
         # check velocities after truncating decimal places for the script output
@@ -114,6 +114,14 @@ def post_to_patch(POST_filepath, POST_filename, patch_filepath, patch_filename, 
             if m.fabs(vx_script - vx_post) < tol and m.fabs(vy_script - vy_post) < tol and m.fabs(vz_script - vz_post) < tol:
                 v_comp_count += 1
                 good_indexes.append(i)
+
+                good = good.append(pd.DataFrame({'vx_script': vx_script,
+                             'vy_script': vy_script,
+                             'vz_script': vz_script,
+                             'vx_post': vx_post,
+                             'vy_post': vy_post,
+                             'vz_post': vz_post},
+                                        index=[0]), ignore_index=True)
             if m.fabs(vx_script - vx_post) < tol:
                 x_comp_count += 1
                 #print("x")
@@ -131,6 +139,7 @@ def post_to_patch(POST_filepath, POST_filename, patch_filepath, patch_filename, 
     print("number of cases with matching y velocity components:", y_comp_count)
     print("number of cases with matching z velocity components:", z_comp_count)
     print(good_indexes)
+    return good
 
 
 def mane_to_post(filepath, filename):
@@ -181,4 +190,5 @@ Uncomment what you want to run
 """
 if __name__ == '__main__':
     # mane_to_post( r'C:\Spice_Kernels', r'\10_declination')
-    post_to_patch(r'C:\Spice_Kernels', r'\tin7_2', r'C:\Spice_Kernels',  r'\3D_potato', 60)
+    good = post_to_patch(r'C:\Spice_Kernels', r'\tin7_2', r'C:\Spice_Kernels',  r'\3D_potato', 60)
+    print(1)

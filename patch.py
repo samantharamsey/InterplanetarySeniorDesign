@@ -77,9 +77,8 @@ if __name__ == '__main__':
     r_titan = 1.2*10**6  #km
     r_encel = 238000  #km
     v_titan = 5.57  #km/s
-    
-    
-    filepath = r'C:\Users\saman\OneDrive\Desktop\senior_design\files'
+
+    filepath = r'C:\Spice_Kernels'
     post_file = r'\tin7_2.xlsx'
     script_file = r'\3D_potato.hdf'
     script_file2 = r'\3D_potato_extended.hdf'
@@ -87,8 +86,3 @@ if __name__ == '__main__':
     
     post_comp, script_comp = get_comp_data(post_data, script_data, 2)
     result = script_comp.merge(post_comp, how='inner')
-    
-
-    
-    
-    
