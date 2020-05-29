@@ -54,18 +54,18 @@ if __name__ == '__main__':
     r_encounter = 49000 #km
     
     # test case
-    vsc_inf = 8.32
-    dec = 2.5
-    th_titan = 180
-    declination, v_inf = calculate_stuff(8.32, 2.5, 180)
+    vsc_inf = 5.7622
+    dec = 14.2513
+    th_titan = 60
+    declination, v_inf = calculate_stuff(vsc_inf, dec, th_titan)
     print('Reference Frame Transformation \
           \nRelative to Saturn: \
           \nv_inf: {} km/s \
           \ndeclination: {} deg \
-          \ntheta: {} deg \
+          \ntitan intercept: {} deg \
           \n \
           \nRelative to Titan: \
           \nv_inf: {} km/s\
           \ndeclination: {} deg\
-          \ntheta: {} deg \
+          \ntitan intercept: {} deg \
           '.format(vsc_inf, dec, th_titan, v_inf, declination, th_titan))

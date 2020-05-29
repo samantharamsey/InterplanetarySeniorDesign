@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""
+'''
 Created on Mon Dec 9 12:45:36 2019
 @author: sam
-"""
+'''
 
 import pandas as pd
 import numpy as np
@@ -14,7 +14,7 @@ from mpl_toolkits.mplot3d import Axes3D
 ######################### UPDATE PATHS BEFORE RUNNING #########################
 
 def RV2COE(mu, state):
-    """
+    '''
     Converts a state vector to the classical orbital elements
     * does not include special cases *
     Args:
@@ -31,7 +31,7 @@ def RV2COE(mu, state):
         Omega_deg - longitude of the ascending node in radians
         omega_deg - argument of perigee in radians
         true_deg - true anomaly in radians
-    """
+    '''
 
     tol = 1 * 10 ** -6
     K = [0, 0, 1]
@@ -89,7 +89,7 @@ def RV2COE(mu, state):
 
 
 def COE2RV(mu, p, e, i, Omega, omega, true):
-    """
+    '''
     Converts the classical orbital elements to a state vector
     * does not include special cases *
     Args:
@@ -102,7 +102,7 @@ def COE2RV(mu, p, e, i, Omega, omega, true):
         true - true anomaly in radians
     Returns:
         state - state vector
-    """
+    '''
 
     # position and velocity PQW vectors
     r_pqw = np.matrix([[(p * np.cos(true)) / (1 + e * np.cos(true))],
@@ -136,7 +136,7 @@ def COE2RV(mu, p, e, i, Omega, omega, true):
 
 
 def state(r, v, gamma, inc):
-    """
+    '''
     Converts position and velocity magnitudes into a state array
     Args:
         r - position vector
@@ -145,7 +145,7 @@ def state(r, v, gamma, inc):
         inc - inclination angle in degrees
     Returns:
         state - state array
-    """
+    '''
 
     g = gamma * (np.pi / 180)
     i = inc * (np.pi / 180)
@@ -156,72 +156,44 @@ def state(r, v, gamma, inc):
     return state
 
 
-def calc_new_v(start, inc):
-    """
+def calc_new_v(gamma, inclination):
+    '''
     Calculates necessary v1
     Args:
-        start - initial v1 <= escape velocity
-        inc - inclination
+        gamma - flight path angle array
+        inclination - inclination angle array
     Returns:
         v1 - post aerocapture velocity that results in satisfactory orbit
         orbital elements
-    """
-
-    v1 = start
-    r = 238010
-    # vary v1 until r_p = r_enceladus
-
-    while r > r_encel:
-        v1 = v1 + inc
-        # initial satellite position
-        pos = np.array([r_titan, 0, 0])
-        statevec = state(pos, v1, g, i)
-        # calculate classical orbital elements
-        h, E, n, e, p, a, incl, Omega, omega, true = RV2COE(mu, statevec)
-        # True Anomaly at Descending Node
-        nu = np.pi - omega
-        # Radius at Descending Node
-        r = p / (1 + e * np.cos(nu))
-
-        # print some stuff to show progress in console
-        print('%-13s %-20s % -20s %-20s %-20s'
-              % ('v1', 'gamma', 'inclination', 'r', 'w'))
-        print('%5.1f %20.10f %20.10f %20.10f %20.10f'
-              % (v1, g, i, r, nu))
-
-    return v1, r, h, E, n, e, p, a, incl, Omega, omega, nu
-
-
-def calculation_loop(inclination, gamma):
-    """
-    Makes the calculations and saves to a dataframe
-    Args:
-        inclination - array of inclinations
-        gamma - array of flight path angles
-    """
-
+    '''
+    
     # initialize an empty dataframe
     data = pd.DataFrame([])
+    
     for g in gamma:
-        for i in inc:
-
-            if 0 < g < 90 or 270 < g < 360:
-                if 0 < i < 180:
-                    v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(7.94, -0.01)
-                else:
-                    v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(-7.94, 0.01)
-
-            elif 90 < g < 270:
-                if 0 < i < 180:
-                    v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(7.94, -0.01)
-                else:
-                    v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(-7.94, 0.01)
-
-            else:
-                v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-
+        for i in inclination:
+            v1 = 7.94 # max v1 to prevent escape from Saturn system in km/s
+            r = r_encel + 10
+            
+            while r > r_encel:
+                
+                v1 = v1 - 0.01 # max v1 to prevent escape from Saturn system in km/s
+                pos = np.array([r_titan, 0, 0]) # initial satellite position
+                statevec = state(pos, v1, g, i)
+                # calculate classical orbital elements
+                h, E, n, e, p, a, incl, Omega, omega, true = RV2COE(mu, statevec)
+                # True Anomally at Descending Node
+                nu = np.pi - omega
+                # Radius at Descending Node
+                r = p/(1 + e*np.cos(nu))
+                # print some stuff to see progress
+                print('%-13s %-20s % -20s %-20s %-20s'  
+                  %('v1', 'gamma', 'inclination', 'r', 'w'))
+                print('%5.1f %20.10f %20.10f %20.10f %20.10f' 
+                  %(v1, g, i, r, nu))
+            
             # Add to the Dataframe
-            data = data.append(pd.DataFrame({'Saturn fpa (deg)': g,
+            data = data.append(pd.DataFrame({'Saturn fpa (deg)': g, 
                                              'Saturn inclination (deg)': i,
                                              'Saturn v1 max': abs(v1),
                                              'Radius at Descending Node': r,
@@ -229,19 +201,46 @@ def calculation_loop(inclination, gamma):
                                              'Mechanical Energy': E,
                                              'Eccentricity': e,
                                              'Semimajor Axis': a,
-                                             'Inclination': incl * (180 / np.pi),
-                                             'Longitude of Ascending Node': Omega * (180 / np.pi),
-                                             'Argument of Perigee': omega * (180 / np.pi),
-                                             'True Anomaly': nu * (180 / np.pi)},
-                                            index=[0]), ignore_index=True)
-    # send results to excel
-    data.to_csv(filepath + filename + r'.csv', index=False)
-    # send results to HDF5 - faster loading
-    data.to_hdf(filepath + filename + r'.hdf', key='df')
+                                             'Inclination': incl*(180/np.pi),
+                                             'Longitude of Ascending Node': Omega*(180/np.pi),
+                                             'Argument of Perigee': omega*(180/np.pi),
+                                             'True Anomally': nu*(180/np.pi)},
+                                             index = [0]), ignore_index = True)
+
+    return v1, r, h, E, n, e, p, a, incl, Omega, omega, nu
+
+
+def calculation_loop(inc, gamma):
+    '''
+    Evaluates based on quadrant
+    Args:
+        inclination - array of inclinations
+        gamma - array of flight path angles
+    '''
+
+    for g in gamma:
+        for i in inc:
+
+            if 0 < g < 90 or 270 < g < 360:
+                if 0 < i < 180:
+                    v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(7.94, -0.01, gamma, inc)
+                else:
+                    v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(-7.94, 0.01, gamma, inc)
+
+            elif 90 < g < 270:
+                if 0 < i < 180:
+                    v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(7.94, -0.01, gamma, inc)
+                else:
+                    v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(-7.94, 0.01, gamma, inc)
+
+            else:
+                v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            
+        return v1, r, h, E, n, e, p, a, incl, Omega, omega, nu
 
 
 def plot_single_inclination(inclination, gamma):
-    """
+    '''
     Plots a single degree of inclination for a range of flight path angles
     *** Use this to see a single inclination curve ***
     Args:
@@ -250,7 +249,7 @@ def plot_single_inclination(inclination, gamma):
         gamma - the final flight path angle to plot in degrees
                 this function will plot from fpa = 0 - fpa = gamma
                 allowable range: 0 < gamma < 360
-    """
+    '''
     
     plt.rcParams.update({'font.size': 10})
     plt.rcParams['font.family'] = 'times new roman'
@@ -298,7 +297,7 @@ def plot_single_inclination(inclination, gamma):
 
 
 def plot_multiple_inclinations(inclination, gamma):
-    """
+    '''
     Plots a selection of inclinations for a range of flight path angles
     *** Use this to see a small selection of inclination curves ***
     Args:
@@ -306,7 +305,7 @@ def plot_multiple_inclinations(inclination, gamma):
                       0 < inclination < 360
         gamma - the final flight path angle to plot in degrees
                 as a single number; 0 < gamma < 360
-    """
+    '''
     
     plt.rcParams.update({'font.size': 12})
     plt.rcParams['font.family'] = 'times new roman'
@@ -359,7 +358,7 @@ def plot_multiple_inclinations(inclination, gamma):
 
 
 def plot_inclination_range(inclination, gamma):
-    """
+    '''
     Plots a range of inclinations for a range of flight path angles
     *** Use this to go from 0 up to the desired values ***
     Args:
@@ -367,7 +366,7 @@ def plot_inclination_range(inclination, gamma):
                       as a single number; 0 < inclination < 360
         gamma - the final flight path angle to plot in degrees
                 as a single number; 0 < gamma < 360   
-    """
+    '''
     
     plt.rcParams.update({'font.size': 10})
     plt.rcParams['font.family'] = 'times new roman'
@@ -417,10 +416,10 @@ def plot_inclination_range(inclination, gamma):
 
 
 def referenceframe_transformation():
-    """
+    '''
     Converts from Saturn centered reference frame to Titan centered
     *** Appends to DataFrame - will not overwrite columns ***
-    """
+    '''
 
     # wrt Saturn
     vx_max = data['Saturn v1 max'] * np.cos(data['Saturn inclination (deg)'] * (np.pi / 180)) * np.sin(
@@ -451,10 +450,10 @@ if __name__ == '__main__':
 
     # load pre-existing file into the dataframe
     # UPDATE FILEPATH BEFORE RUNNING
-    filepath = r'C:\Spice_Kernels'
-    filename = r'\3D_potato'
-    data = pd.read_hdf(filepath + filename + r'.hdf')
-
+    # filepath = r'C:\Spice_Kernels'
+    # filename = r'\3D_potato'
+    # data = pd.read_hdf(filepath + filename + r'.hdf')    
+    
     # define some constants
     mu = 37.931 * 10 ** 6  # saturn's gravitational parameter
     saturn_equatorial = 60268  # km
@@ -466,7 +465,10 @@ if __name__ == '__main__':
     # flight path angle array
     gamma = np.linspace(1, 360, 360)
     # inclination angle array
-    inc = np.linspace(1, 360, 360)
+    incl = np.linspace(1, 360, 360)
+    
+    # calculate stuff for Jack
+    calc_new_v(gamma, incl)
 
     ################################## PLOTTING ###################################
 
@@ -476,11 +478,11 @@ if __name__ == '__main__':
     # each function call will generate a new plot
 
     # plot a single inclination curve
-    plot_single_inclination(45, 360)
-
-    # plot the inclination curves in multiples of 10
-    inclination = [1, 10, 20, 30, 40, 50, 60, 70, 80, 89]
-    plot_multiple_inclinations(inclination, 360)
-
-    # plot the entire first quadrant
-    plot_inclination_range(90, 90)
+#    plot_single_inclination(45, 360)
+#
+#    # plot the inclination curves in multiples of 10
+#    inclination = [1, 10, 20, 30, 40, 50, 60, 70, 80, 89]
+#    plot_multiple_inclinations(inclination, 360)
+#
+#    # plot the entire first quadrant
+#    plot_inclination_range(90, 90)

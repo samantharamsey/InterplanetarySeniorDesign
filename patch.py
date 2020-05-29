@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Created on Sun May  3 12:22:44 2020
+Created on Sun May 3 12:22:44 2020
 
 @author: sam
 '''
@@ -9,6 +9,7 @@ Created on Sun May  3 12:22:44 2020
 import pandas as pd
 import numpy as np
 import math as m
+import matplotlib.pyplot as plt
 
 
 def load_data(filepath, post, script):
@@ -97,7 +98,103 @@ def get_comp_data(post_data, script_data, intercept):
     script_comp = pd.read_hdf(filepath + script_file2)
     
     return post_comp, script_comp
+
+
+def RV2COE(mu, state):
+    '''
+    Converts a state vector to the classical orbital elements
+    * does not include special cases *
+    Args:
+        mu - gravitational parameter of primary body
+        state - position and velocity as a 6 element array
+    Returns:
+        h_mag - specific angular momentum
+        E - specific mechanical energy
+        n_mag - magnitude of the node vector
+        e_mag - eccentricity
+        p - semiparameter
+        a - semimajor axis
+        i_deg - inclination in radians
+        Omega_deg - longitude of the ascending node in radians
+        omega_deg - argument of perigee in radians
+        true_deg - true anomaly in radians
+    '''
+
+    tol = 1 * 10 ** -6
+    K = [0, 0, 1]
+
+    # position vector
+    r = state[:3]
+    r_mag = np.linalg.norm(r)
+
+    # velocity vector
+    v = state[3:]
+    v_mag = np.linalg.norm(v)
+
+    # specific angular momentum
+    h = np.cross(r, v)
+    h_mag = np.linalg.norm(h)
+
+    # node vector
+    n = np.cross(K, h)
+    n_mag = np.linalg.norm(n)
+
+    # eccentricity
+    e = ((v_mag ** 2 - (mu / r_mag)) * r - np.dot(r, v) * v) / mu
+    e_mag = np.linalg.norm(e)
+
+    # specific energy
+    E = (v_mag ** 2 / 2) - (mu / r_mag)
+
+    # semiparameter and semimajor axis depending on orbit type
+    if 1 - tol < e_mag < 1 + tol:
+        p = (h_mag ** 2 / mu)
+        a = np.inf
+    else:
+        a = -mu / (2 * E)
+        p = a * (1 - e_mag ** 2)
+
+    # inclination
+    i = np.arccos(h[2] / h_mag)
+
+    # longitude of the ascending node
+    Omega = np.arccos(n[0] / n_mag)
+    if n[1] < tol:
+        Omega = 2 * np.pi - Omega
+
+    # argument of perigee
+    omega = np.arccos((np.dot(n, e)) / (n_mag * e_mag))
+    if e[2] < 0:
+        omega = 2 * np.pi - omega
+
+    # true anomaly
+    true = np.arccos(np.dot(e, r) / (e_mag * r_mag))
+    if np.dot(r, v) < 0:
+        true = 2 * np.pi - true
+
+    return h_mag, E, n_mag, e_mag, p, a, i, Omega, omega, true
     
+
+def state(r, v, gamma, inc):
+    '''
+    Converts position and velocity magnitudes into a state array
+    Args:
+        r - position vector
+        v - velocity magnitude
+        gamma - flight path angle in degrees
+        inc - inclination angle in degrees
+    Returns:
+        state - state array
+    '''
+
+    g = gamma * (np.pi / 180)
+    i = inc * (np.pi / 180)
+    state = np.concatenate((r, [v * np.cos(i) * np.sin(g),
+                                v * np.cos(i) * np.cos(g),
+                                v * np.sin(i)]))
+
+    return state
+
     
 if __name__ == '__main__':
     
@@ -106,6 +203,7 @@ if __name__ == '__main__':
     r_titan = 1.2*10**6  #km
     r_encel = 238000  #km
     v_titan = 5.57  #km/s
+    intercept = 60
 
     filepath = r'C:\Spice_Kernels'
     post_file = r'\tin7_2.xlsx'
@@ -113,9 +211,7 @@ if __name__ == '__main__':
     script_file2 = r'\3D_potato_extended.hdf'
     post_data, script_data = load_data(filepath, post_file, script_file)
     
-    post_comp, script_comp = get_comp_data(post_data, script_data, 60)
-    result = script_comp.merge(post_comp, how='inner')
-    
+    post_comp, script_comp = get_comp_data(post_data, script_data, intercept)
     
     vmag_post = post_comp['vmag'][0]
     vmag_script = script_comp['vmag']
@@ -149,9 +245,9 @@ if __name__ == '__main__':
                 good = good.append(pd.DataFrame({'vx_script': vx_script[i],
                              'vy_script': vy_script[i],
                              'vz_script': vz_script[i],
-                             'vx_post': vx_post,
-                             'vy_post': vy_post,
-                             'vz_post': vz_post},
+                             'vx_post':   vx_post,
+                             'vy_post':   vy_post,
+                             'vz_post':   vz_post},
                                         index=[0]), ignore_index=True)
             if m.fabs(vx_script[i] - vx_post) < tol:
                 x_comp_count += 1
@@ -167,3 +263,26 @@ if __name__ == '__main__':
     print("number of cases with matching y velocity components:", y_comp_count)
     print("number of cases with matching z velocity components:", z_comp_count)
     print(good_indexes)
+    
+
+    result = pd.concat([script_data.iloc[41577,:]], axis = 1).T
+
+    theta = np.linspace(0, 2*np.pi, 360)
+    e = 0.951442
+    a = 4.19186*10**6
+    r = (a*(1 - e**2))/(1 + e*np.cos(theta))
+    
+    ax = plt.subplot(111, polar = True)
+    ax.plot(theta, r)
+#    circle = plt.Circle((0.0, 0.0), sun, transform = ax.transData._b, 
+#                        color = planet_color, alpha=0.9)
+#    ax.add_artist(circle)
+    ax.set_yticklabels([])
+    ax.set_xticklabels([])
+    plt.show()
+    
+    
+    
+    
+    
+    
