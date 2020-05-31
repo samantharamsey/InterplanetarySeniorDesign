@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
 Created on Sun May 3 12:22:44 2020
-
 @author: sam
 '''
 
@@ -14,7 +13,7 @@ import matplotlib.pyplot as plt
 
 def load_data(filepath, post, script):
     '''
-    loads data from POST and script into dataframes
+    Loads data from POST output and script results into dataframes
     Args:
         fileparth - path to files
         post - post data filename and extension
@@ -29,7 +28,8 @@ def load_data(filepath, post, script):
 
 def referenceframe_transformation(data, intercept):
     '''
-    Converts from Saturn centered reference frame to Titan centered
+    Converts from Saturn centered reference frame to Titan centered and saves
+    to HDF "3D_potato_extended"
     Args:
         data - dataframe
         intercept - space craft intercept location in degrees
@@ -63,6 +63,7 @@ def referenceframe_transformation(data, intercept):
     vx = vxs + vxt
     vy = vys + vyt
     vz = vzs + vzt
+    
     vmag = []
     for i in range(len(vx)):
         norm = np.linalg.norm([vx[i], vy[i], vz[i]])
@@ -98,81 +99,6 @@ def get_comp_data(post_data, script_data, intercept):
     script_comp = pd.read_hdf(filepath + script_file2)
     
     return post_comp, script_comp
-
-
-def RV2COE(mu, state):
-    '''
-    Converts a state vector to the classical orbital elements
-    * does not include special cases *
-    Args:
-        mu - gravitational parameter of primary body
-        state - position and velocity as a 6 element array
-    Returns:
-        h_mag - specific angular momentum
-        E - specific mechanical energy
-        n_mag - magnitude of the node vector
-        e_mag - eccentricity
-        p - semiparameter
-        a - semimajor axis
-        i_deg - inclination in radians
-        Omega_deg - longitude of the ascending node in radians
-        omega_deg - argument of perigee in radians
-        true_deg - true anomaly in radians
-    '''
-
-    tol = 1 * 10 ** -6
-    K = [0, 0, 1]
-
-    # position vector
-    r = state[:3]
-    r_mag = np.linalg.norm(r)
-
-    # velocity vector
-    v = state[3:]
-    v_mag = np.linalg.norm(v)
-
-    # specific angular momentum
-    h = np.cross(r, v)
-    h_mag = np.linalg.norm(h)
-
-    # node vector
-    n = np.cross(K, h)
-    n_mag = np.linalg.norm(n)
-
-    # eccentricity
-    e = ((v_mag ** 2 - (mu / r_mag)) * r - np.dot(r, v) * v) / mu
-    e_mag = np.linalg.norm(e)
-
-    # specific energy
-    E = (v_mag ** 2 / 2) - (mu / r_mag)
-
-    # semiparameter and semimajor axis depending on orbit type
-    if 1 - tol < e_mag < 1 + tol:
-        p = (h_mag ** 2 / mu)
-        a = np.inf
-    else:
-        a = -mu / (2 * E)
-        p = a * (1 - e_mag ** 2)
-
-    # inclination
-    i = np.arccos(h[2] / h_mag)
-
-    # longitude of the ascending node
-    Omega = np.arccos(n[0] / n_mag)
-    if n[1] < tol:
-        Omega = 2 * np.pi - Omega
-
-    # argument of perigee
-    omega = np.arccos((np.dot(n, e)) / (n_mag * e_mag))
-    if e[2] < 0:
-        omega = 2 * np.pi - omega
-
-    # true anomaly
-    true = np.arccos(np.dot(e, r) / (e_mag * r_mag))
-    if np.dot(r, v) < 0:
-        true = 2 * np.pi - true
-
-    return h_mag, E, n_mag, e_mag, p, a, i, Omega, omega, true
     
 
 def state(r, v, gamma, inc):
@@ -187,12 +113,11 @@ def state(r, v, gamma, inc):
         state - state array
     '''
 
-    g = gamma * (np.pi / 180)
-    i = inc * (np.pi / 180)
-    state = np.concatenate((r, [v * np.cos(i) * np.sin(g),
-                                v * np.cos(i) * np.cos(g),
-                                v * np.sin(i)]))
-
+    g = gamma*(np.pi/180)
+    i = inc*(np.pi/180)
+    state = np.concatenate((r, [v*np.cos(i)*np.sin(g),
+                                v*np.cos(i)*np.cos(g),
+                                v*np.sin(i)]))
     return state
 
     
@@ -257,29 +182,30 @@ if __name__ == '__main__':
                 z_comp_count += 1
                 
     print(good)
-    print("number of cases with matching velocity magnitudes:", v_mag_count)
-    print("number of cases with all matching velocity components:", v_comp_count)
-    print("number of cases with matching x velocity components:", x_comp_count)
-    print("number of cases with matching y velocity components:", y_comp_count)
-    print("number of cases with matching z velocity components:", z_comp_count)
+    print('number of cases with matching velocity magnitudes: ', v_mag_count)
+    print('number of cases with all matching velocity components: ', v_comp_count)
+    print('number of cases with matching x velocity components: ', x_comp_count)
+    print('number of cases with matching y velocity components: ', y_comp_count)
+    print('number of cases with matching z velocity components: ', z_comp_count)
     print(good_indexes)
     
 
     result = pd.concat([script_data.iloc[41577,:]], axis = 1).T
 
-    theta = np.linspace(0, 2*np.pi, 360)
-    e = 0.951442
-    a = 4.19186*10**6
-    r = (a*(1 - e**2))/(1 + e*np.cos(theta))
+# PLOTTING
+#     theta = np.linspace(0, 2*np.pi, 360)
+#     e = 0.951442
+#     a = 4.19186*10**6
+#     r = (a*(1 - e**2))/(1 + e*np.cos(theta))
     
-    ax = plt.subplot(111, polar = True)
-    ax.plot(theta, r)
-#    circle = plt.Circle((0.0, 0.0), sun, transform = ax.transData._b, 
-#                        color = planet_color, alpha=0.9)
-#    ax.add_artist(circle)
-    ax.set_yticklabels([])
-    ax.set_xticklabels([])
-    plt.show()
+#     ax = plt.subplot(111, polar = True)
+#     ax.plot(theta, r)
+# #    circle = plt.Circle((0.0, 0.0), sun, transform = ax.transData._b, 
+# #                        color = planet_color, alpha=0.9)
+# #    ax.add_artist(circle)
+#     ax.set_yticklabels([])
+#     ax.set_xticklabels([])
+#     plt.show()
     
     
     
