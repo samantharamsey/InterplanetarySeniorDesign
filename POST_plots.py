@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
 '''
 Created on Tue Mar 10 17:23:35 2020
-
 @author: sam
+
+Creates the plot that shows the difference between a traditional gravity assist
+and an aerogravity assist maneuver.
+
+Required:
+    C:\Senior_Design\TitanAGAMission\Data\PostData\...
 '''
 
 import pandas as pd
@@ -13,7 +18,7 @@ import matplotlib.pyplot as plt
 if __name__ == '__main__':
     
     # load in the data from POST - cl off
-    filepath = r'C:\Users\saman\OneDrive\Desktop\InterplanetarySeniorDesign\POSTdata'
+    filepath = r'C:\Senior_Design\TitanAGAMission\Data\PostData'
     filename1 = r'\cl_off'
     test_data = pd.read_csv(filepath + filename1 + r'.hdf', delim_whitespace = True)
     

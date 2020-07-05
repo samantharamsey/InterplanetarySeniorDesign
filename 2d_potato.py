@@ -2,6 +2,9 @@
 '''
 Created on Sat Nov 16 11:29:58 2019
 @author: sam
+
+Determines the post-AGA science orbit solution space in 2D.
+Should run as-is with no required data or files.
 '''
 
 import pandas as pd
@@ -178,7 +181,7 @@ data.insert(18, 'Titan v1 min magnitude', vmin, True)
 data.insert(19, 'Titan v1x min', vx_min, True)
 data.insert(20, 'Titan v1y min', new_vymin, True)
 
-data.to_csv(r'C:\Spice_Kernels\potato.csv', index=False)
+# data.to_csv(r'C:\Senior_Design\TitanAGAMission\Data\PotatoData\2D_potato.csv', index=False)
 
 plt.rcParams.update({'font.size': 12})
 plt.rcParams['font.family'] = 'times new roman'
@@ -228,7 +231,9 @@ ax2.plot(data['Saturn fpa (deg)'][103:256]*(np.pi/180), data['Saturn v1 min'][10
 ax2.plot(data['Saturn fpa (deg)'][255:284]*(np.pi/180), data['Saturn v1 min'][255:284], c='red')
 ax2.plot(data['Saturn fpa (deg)'][283:]*(np.pi/180), data['Saturn v1 min'][283:], c='blue')
 ax2.fill_between(data['Saturn fpa (deg)'][::]*(np.pi/180), data['Saturn v1 max'][::],
-                 data['Saturn v1 min'][::], facecolor='darkseagreen')
+                 data['Saturn v1 min'][::], facecolor='darkseagreen', alpha = 0.7)
+ax2.fill_between(data['Saturn fpa (deg)'][::]*(np.pi/180), data['Saturn v1 min'][::],
+                 facecolor='red', alpha = 0.3)
 plt.title('Family of Acceptable Post-AGA Velocity Vectors wrt Saturn')
 plt.legend(['Trajectories with $r_p$ about equal to $r_{enceladus}$',
             'Escape Velocity Constraint',

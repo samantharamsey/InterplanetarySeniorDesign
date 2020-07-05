@@ -2,7 +2,10 @@
 Created on Sat May 30 13:00:24 2020
 @author: sam
 
-Attempting a patched conic trajectory to Saturn
+Attempting a patched conic trajectory to Saturn.
+
+Required:
+    SPICE Kernels
 '''
 
 import pandas as pd

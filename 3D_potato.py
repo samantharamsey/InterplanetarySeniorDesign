@@ -6,6 +6,9 @@ Created on Mon Dec 9 12:45:36 2019
 Calculates the family of acceptable velocity vectors post Titan aerogravity 
 assist that will result in a science orbit about Saturn that will allow for 
 frequent fly-bys of Enceladus.
+
+Requires:
+    C:\Senior_Design\TitanAGAMission\Data\PotatoData\3D_potato.hdf
 '''
 
 # imports
@@ -495,7 +498,7 @@ if __name__ == '__main__':
 
     # load pre-existing file into the dataframe
     # UPDATE FILEPATH BEFORE RUNNING
-    filepath = r'C:\Spice_Kernels'
+    filepath = r'C:\Senior_Design\TitanAGAMission\Data\PotatoData'
     filename = r'\3D_potato'
     data = pd.read_hdf(filepath + filename + r'.hdf')    
     
