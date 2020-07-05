@@ -22,7 +22,6 @@ def furnsh_kernels():
     '''
     Furnshes the kernels needed for a Saturn mission
     '''
-    
     spice.tkvrsn('TOOLKIT')
     path = r'C:/Spice_Kernels/'
     spice.furnsh(path + r'de430.bsp')
