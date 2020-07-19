@@ -23,7 +23,7 @@ def furnsh_kernels():
     Furnshes the kernels needed for a Saturn mission
     '''
     spice.tkvrsn('TOOLKIT')
-    path = r'C:/Spice_Kernels/'
+    path = r'C:\Senior_Design\Spice_Kernels'
     spice.furnsh(path + r'de430.bsp')
     spice.furnsh(path + r'naif0009.tls')
     spice.furnsh(path + r'sat425.bsp')
@@ -279,6 +279,11 @@ if __name__ == '__main__':
     dt = 6.5*365*24*3600
     
     doStuff(utc[0], dt)
+    
+    
+    
+    
+    
 #     # position and velocity relative to the Sun
 #     r_earth,  v_earth  = find_state('Earth',  etOne, 'Sun') # at departure
 #     r_saturn, v_saturn = find_state('Saturn', etTwo, 'Sun') # at arrival

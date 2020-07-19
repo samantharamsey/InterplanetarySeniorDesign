@@ -137,7 +137,7 @@ if __name__ == '__main__':
     r_encel = 238000  #km
     v_titan = 5.57  #km/s
     intercept = 60
-'
+
     post_file = r'C:\Senior_Design\TitanAGAMission\Data\PostData\tin7_2.xlsx'
     script_file = r'C:\Senior_Design\TitanAGAMission\Data\PotatoData\3D_potato.hdf'
     script_file2 = r'C:\Senior_Design\TitanAGAMission\Data\PotatoData\3D_potato_extended.hdf'
