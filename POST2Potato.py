@@ -28,8 +28,8 @@ def load_data(post, script):
         script - script data filepath
     '''
     
-    post_data = pd.read_excel(filepath + post)
-    script_data = pd.read_hdf(filepath + script)
+    post_data = pd.read_excel(post)
+    script_data = pd.read_hdf(script)
     
     return post_data, script_data
     
@@ -83,8 +83,7 @@ def referenceframe_transformation(data, intercept):
                          'vzi': vz,
                          'vmag': vmag})       
                
-    script_file2 = r'\3D_potato_extended'
-    data.to_hdf(filepath + script_file2 + r'.hdf', key = 'df')  
+    data.to_hdf(script_file2, key = 'df')  
     
     
 def get_comp_data(post_data, script_data, intercept):
@@ -104,7 +103,7 @@ def get_comp_data(post_data, script_data, intercept):
     vmag = np.linalg.norm(post_comp[['vxi', 'vyi', 'vzi']].values,axis=1)
     post_comp = post_comp.append(pd.DataFrame({'vmag': vmag}))
     referenceframe_transformation(script_data, intercept)
-    script_comp = pd.read_hdf(filepath + script_file2)
+    script_comp = pd.read_hdf(script_file2)
     
     return post_comp, script_comp
     
@@ -138,10 +137,11 @@ if __name__ == '__main__':
     v_titan = 5.57  #km/s
     intercept = 60
 
+
     post_file = r'C:\Senior_Design\TitanAGAMission\Data\PostData\tin7_2.xlsx'
     script_file = r'C:\Senior_Design\TitanAGAMission\Data\PotatoData\3D_potato.hdf'
     script_file2 = r'C:\Senior_Design\TitanAGAMission\Data\PotatoData\3D_potato_extended.hdf'
-    post_data, script_data = load_data(filepath, post_file, script_file)
+    post_data, script_data = load_data(post_file, script_file)
     
     post_comp, script_comp = get_comp_data(post_data, script_data, intercept)
     
