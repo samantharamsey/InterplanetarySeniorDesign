@@ -90,8 +90,8 @@ def get_comp_data(post_data, script_data, intercept):
     '''
     Loads POST and script data for the purpose of comparison
     Args:
-        post_data - dataframe of POST file
-        script_data - dataframe of script file
+        post_data - POST dataframe
+        script_data - script dataframe
         decimal - number of decimals to include
         intercept - intercept location of probe at Titan
     Returns:
@@ -100,8 +100,8 @@ def get_comp_data(post_data, script_data, intercept):
     '''
     
     post_comp = pd.concat([post_data.iloc[-1,7::]/1000], axis = 1).T
-    vmag = np.linalg.norm(post_comp[['vxi', 'vyi', 'vzi']].values,axis=1)
-    post_comp = post_comp.append(pd.DataFrame({'vmag': vmag}))
+    vmag = np.linalg.norm(post_comp[['vxi', 'vyi', 'vzi']].values, axis = 1)
+    post_comp['vmag'] = vmag
     referenceframe_transformation(script_data, intercept)
     script_comp = pd.read_hdf(script_file2)
     

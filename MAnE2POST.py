@@ -66,8 +66,8 @@ if __name__ == '__main__':
     r_encounter = 49000 #km
     
     # test case
-    vsc_inf = 5.7622
-    dec = 14.2513
+    vsc_inf = 5.13
+    dec = -11.796
     th_titan = 60
     declination, v_inf = calculate_stuff(vsc_inf, dec, th_titan)
     print('Reference Frame Transformation \
