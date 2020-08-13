@@ -9,6 +9,8 @@ frequent fly-bys of Enceladus.
 
 Requires:
     C:\Senior_Design\TitanAGAMission\Data\PotatoData\3D_potato.hdf
+    If not present the script will recalculate the data.
+        Be forewarned - it takes days...
 '''
 
 # imports
@@ -161,45 +163,71 @@ def state(r, v, gamma, inc):
     return state
 
 
-def calc_new_v(gamma, inclination):
+def calc_new_v(start, inc, g, i):
     '''
-    Calculates necessary v1
+    Calculates necessary v1 
     Args:
-        gamma - flight path angle array
-        inclination - inclination angle array
+        start - initial v1 <= escape velocity
+        inc - inclination
     Returns:
         v1 - post aerocapture velocity that results in satisfactory orbit
         orbital elements
     '''
     
-    # constants
-    escape_v = 7.94 # km/s
-    increment = 0.01 # km/s
+    v1 = start  
+    r = 238010
+    # vary v1 until r_p = r_enceladus
+    
+    while r > r_encel:
+        v1 = v1 + inc  
+        # initial satellite position
+        pos = np.array([r_titan, 0, 0])
+        statevec = state(pos, v1, g, i)
+        # calculate classical orbital elements
+        h, E, n, e, p, a, incl, Omega, omega, true = RV2COE(mu, statevec)
+        # True Anomaly at Descending Node
+        nu = np.pi - omega
+        # Radius at Descending Node
+        r = p / (1 + e * np.cos(nu))
+        
+    # print some stuff to show progress in console
+    print('%-13s %-20s % -20s %-20s %-20s'
+          % ('v1', 'gamma', 'inclination', 'r', 'w'))
+    print('%5.1f %20.10f %20.10f %20.10f %20.10f'
+          % (v1, g, i, r, nu))
+        
+    return v1, r, h, E, n, e, p, a, incl, Omega, omega, nu
+
+
+def calculation_loop(inclination, gamma):
+    '''
+    Makes the calculations and saves to a dataframe
+    Args:
+        inclination - array of inclinations
+        gamma - array of flight path angles
+    '''
     
     # initialize an empty dataframe
     data = pd.DataFrame([])
     
     for g in gamma:
-        for i in inclination:
-            v1 = escape_v # max v1 to prevent escape from Saturn system in km/s
-            r = r_encel + 10
+        for i in inc:
             
-            while r > r_encel:
-                v1 = v1 - increment # max v1 to prevent escape from Saturn system in km/s
-                pos = np.array([r_titan, 0, 0]) # initial satellite position
-                statevec = state(pos, v1, g, i)
-                # calculate classical orbital elements
-                h, E, n, e, p, a, incl, Omega, omega, true = RV2COE(mu, statevec)
-                # True Anomally at Descending Node
-                nu = np.pi - omega
-                # Radius at Descending Node
-                r = p/(1 + e*np.cos(nu))
-                # print some stuff to see progress
-                print('%-13s %-20s % -20s %-20s %-20s'  
-                  %('v1', 'gamma', 'inclination', 'r', 'w'))
-                print('%5.1f %20.10f %20.10f %20.10f %20.10f' 
-                  %(v1, g, i, r, nu))
-            
+            if 0 < g < 90 or 270 < g < 360:
+                if 0 < i < 180:
+                    v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(7.94, -0.01, g, i)
+                else:
+                    v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(-7.94, 0.01, g, i)
+                    
+            elif 90 < g < 270:
+                if 0 < i < 180:
+                    v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(7.94, -0.01, g, i)
+                else:
+                    v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(-7.94, 0.01, g, i)
+                    
+            else:
+                v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+           
             # Add to the Dataframe
             data = data.append(pd.DataFrame({'Saturn fpa (deg)': g, 
                                              'Saturn inclination (deg)': i,
@@ -212,36 +240,13 @@ def calc_new_v(gamma, inclination):
                                              'Inclination': incl*(180/np.pi),
                                              'Longitude of Ascending Node': Omega*(180/np.pi),
                                              'Argument of Perigee': omega*(180/np.pi),
-                                             'True Anomally': nu*(180/np.pi)},
-                                             index = [0]), ignore_index = True)
-
-
-def calculation_loop(inc, gamma):
-    '''
-    Evaluates based on quadrant
-    *** BROKEN ***
-    Args:
-        inclination - array of inclinations
-        gamma - array of flight path angles
-    '''
-
-    for g in gamma:
-        for i in inc:
-
-            if 0 < g < 90 or 270 < g < 360:
-                if 0 < i < 180:
-                    v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(7.94, -0.01, gamma, inc)
-                else:
-                    v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(-7.94, 0.01, gamma, inc)
-            elif 90 < g < 270:
-                if 0 < i < 180:
-                    v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(7.94, -0.01, gamma, inc)
-                else:
-                    v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = calc_new_v(-7.94, 0.01, gamma, inc)
-            else:
-                v1, r, h, E, n, e, p, a, incl, Omega, omega, nu = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-            
-        return v1, r, h, E, n, e, p, a, incl, Omega, omega, nu
+                                             'True Anomaly': nu*(180/np.pi)},
+                                            index=[0]), ignore_index=True)
+    
+    # send results to excel
+    data.to_csv(filepath + filename + r'.csv', index = False)
+    # send results to HDF5 - faster loading
+    data.to_hdf(filepath + filename + r'.hdf', key = 'df')
     
     
 def plot_single_inclination(inclination, gamma):
@@ -516,7 +521,7 @@ if __name__ == '__main__':
     incl = np.linspace(1, 360, 360)
     
     # calculate stuff if data not present
-    # calc_new_v(gamma, incl)
+    # calculation_loop(incl, gamma)
     
     ################################ PLOTTING ################################
 
