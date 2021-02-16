@@ -249,7 +249,7 @@ def calculation_loop(inclination, gamma):
     data.to_hdf(filepath + filename + r'.hdf', key = 'df')
     
     
-def plot_single_inclination(inclination, gamma):
+def plot_inclination(inclination, gamma):
     '''
     Plots a single degree of inclination for a range of flight path angles
     *** Use this to see a single inclination curve ***
@@ -321,152 +321,6 @@ def plot_single_inclination(inclination, gamma):
     plt.show()
 
 
-def plot_multiple_inclinations(inclination, gamma):
-    '''
-    Plots a selection of inclinations for a range of flight path angles
-    *** Use this to see a small selection of inclination curves ***
-    Args:
-        inclination - an [array] of inclinations you want to plot in degrees
-                      0 < inclination < 360
-        gamma - the final flight path angle to plot in degrees
-                as a single number; 0 < gamma < 360
-    '''
-    
-    plt.rcParams.update({'font.size': 12})
-    plt.rcParams['font.family'] = 'times new roman'
-
-    fig = plt.figure()
-    ax  = fig.add_subplot(111, projection='3d')
-    
-    for i in inclination:
-        fpa   = data['Saturn fpa (deg)'] < gamma
-        lower = data['Saturn inclination (deg)'] < i + 1
-        upper = data['Saturn inclination (deg)'] > i - 1
-        new_data = data[fpa]
-        new_data = new_data[lower]
-        new_data = new_data[upper]
-        
-        # determine the plot color based on the perigee radius
-        green  = new_data['Radius at Descending Node'] > 230000
-        orange = new_data['Radius at Descending Node'].between(61000, 230000)
-        red    = new_data['Radius at Descending Node'] < 61000
-        
-        # create a mini dataframe of each color
-        data3 = new_data[green]
-        data4 = new_data[orange]
-        data5 = new_data[red]
-        
-        # convert to Cartesian coordinates
-        X_green  = data3['Saturn v1 max']*np.cos(
-                   data3['Saturn inclination (deg)']*(np.pi/180))*np.sin(
-                   data3['Saturn fpa (deg)']*(np.pi/180))
-        Y_green  = data3['Saturn v1 max']*np.cos(
-                   data3['Saturn inclination (deg)']*(np.pi/180))*np.cos(
-                   data3['Saturn fpa (deg)']*(np.pi/180))
-        Z_green  = data3['Saturn v1 max']*np.sin(
-                   data3['Saturn inclination (deg)']*(np.pi/180))
-        X_orange = data4['Saturn v1 max']*np.cos(
-                   data4['Saturn inclination (deg)']*(np.pi/180))*np.sin(
-                   data4['Saturn fpa (deg)']*(np.pi / 180))
-        Y_orange = data4['Saturn v1 max']*np.cos(
-                   data4['Saturn inclination (deg)']*(np.pi/180))*np.cos(
-                   data4['Saturn fpa (deg)']*(np.pi/180))
-        Z_orange = data4['Saturn v1 max']*np.sin(
-                   data4['Saturn inclination (deg)']*(np.pi/180))
-        X_red    = data5['Saturn v1 max']*np.cos(
-                   data5['Saturn inclination (deg)']*(np.pi/180))*np.sin(
-                   data5['Saturn fpa (deg)']*(np.pi/180))
-        Y_red    = data5['Saturn v1 max']*np.cos(
-                   data5['Saturn inclination (deg)']*(np.pi/180))*np.cos(
-                   data5['Saturn fpa (deg)']*(np.pi/180))
-        Z_red    = data5['Saturn v1 max']*np.sin(
-                   data5['Saturn inclination (deg)']*(np.pi/180))
-        
-        # do the plotting 
-        ax.scatter(X_green, Y_green, Z_green, c = 'green')
-        ax.scatter(X_orange, Y_orange, Z_orange, c = 'orange')
-        ax.scatter(X_red, Y_red, Z_red, c = 'red')
-        
-    ax.set_xlabel('Radial Velocity Component (km/s)')
-    ax.set_ylabel('Tangential Velocity Component (km/s)')
-    ax.set_zlabel('Vertical Velocity Component (km/s)')
-    plt.title('Family of Acceptable Post-AGA Velocity Vectors wrt Saturn')
-    plt.legend(['Trajectories with $r_p$ about equal to $r_{enceladus}$',
-                'Escape Velocity Constraint',
-                'Trajectories with Perigee Radius Smaller than Saturn\'s Radius',], loc = 3)
-    plt.show()
-
-
-def plot_inclination_range(inclination, gamma):
-    '''
-    Plots a range of inclinations for a range of flight path angles
-    *** Use this to go from 0 up to the desired values ***
-    Args:
-        inclination - the final inclination you want to plot in degrees
-                      as a single number; 0 < inclination < 360
-        gamma - the final flight path angle to plot in degrees
-                as a single number; 0 < gamma < 360   
-    '''
-    
-    fpa = data['Saturn fpa (deg)'] < gamma
-    inc = data['Saturn inclination (deg)'] < inclination
-    new_data = data[fpa]
-    new_data = new_data[inc]
-    
-    # determine the plot color based on the perigee radius
-    green  = new_data['Radius at Descending Node'] > 230000
-    orange = new_data['Radius at Descending Node'].between(61000, 230000)
-    red    = new_data['Radius at Descending Node'] < 61000
-    
-    # create a mini dataframe of each color
-    data3 = new_data[green]
-    data4 = new_data[orange]
-    data5 = new_data[red]
-    
-    # convert to Cartesian coordinates
-    X_green  = data3['Saturn v1 max']*np.cos(
-               data3['Saturn inclination (deg)']*(np.pi/180))*np.sin(
-               data3['Saturn fpa (deg)']*(np.pi/180))
-    Y_green  = data3['Saturn v1 max']*np.cos(
-               data3['Saturn inclination (deg)']*(np.pi/180))*np.cos(
-               data3['Saturn fpa (deg)']*(np.pi/180))
-    Z_green  = data3['Saturn v1 max']*np.sin(
-               data3['Saturn inclination (deg)']*(np.pi/180))
-    X_orange = data4['Saturn v1 max']*np.cos(
-               data4['Saturn inclination (deg)']*(np.pi/180))*np.sin(
-               data4['Saturn fpa (deg)']*(np.pi / 180))
-    Y_orange = data4['Saturn v1 max']*np.cos(
-               data4['Saturn inclination (deg)']*(np.pi/180))*np.cos(
-               data4['Saturn fpa (deg)']*(np.pi/180))
-    Z_orange = data4['Saturn v1 max']*np.sin(
-               data4['Saturn inclination (deg)']*(np.pi/180))
-    X_red    = data5['Saturn v1 max']*np.cos(
-               data5['Saturn inclination (deg)']*(np.pi/180))*np.sin(
-               data5['Saturn fpa (deg)']*(np.pi/180))
-    Y_red    = data5['Saturn v1 max']*np.cos(
-               data5['Saturn inclination (deg)']*(np.pi/180))*np.cos(
-               data5['Saturn fpa (deg)']*(np.pi/180))
-    Z_red    = data5['Saturn v1 max']*np.sin(
-               data5['Saturn inclination (deg)']*(np.pi/180))
-    
-    # do the plotting
-    plt.rcParams.update({'font.size': 10})
-    plt.rcParams['font.family'] = 'times new roman'
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection = '3d')
-    ax.scatter(X_green, Y_green, Z_green, c = 'green')
-    ax.scatter(X_orange, Y_orange, Z_orange, c = 'orange')
-    ax.scatter(X_red, Y_red, Z_red, c = 'red')
-    ax.set_xlabel('Radial Velocity Component (km/s)')
-    ax.set_ylabel('Tangential Velocity Component (km/s)')
-    ax.set_zlabel('Vertical Velocity Component (km/s)')
-    plt.title('Family of Acceptable Post-AGA Velocity Vectors wrt Saturn')
-    plt.legend(['Trajectories with $r_p$ about equal to $r_{enceladus}$',
-                'Escape Velocity Constraint',
-                'Trajectories with Perigee Radius Smaller than Saturn\'s Radius'], loc = 8)
-    plt.show()
-
-
 def referenceframe_transformation(data):
     '''
     Converts from Saturn centered reference frame to Titan centered
@@ -524,18 +378,8 @@ if __name__ == '__main__':
     # calculation_loop(incl, gamma)
     
     ################################ PLOTTING ################################
-
-    # NOTES:
-    # first input for each function is inclination second is flight path angle
-    # both can range from 0 - 360 degrees
-    # each function call will generate a new plot
-
+    
     # plot a single inclination curve
-    plot_single_inclination(45, 360)
+    plot_inclination(45, 360)
 
-    # plot the inclination curves in multiples of 10
-    inclination = [1, 10, 20, 30, 40, 50, 60, 70, 80, 89]
-    plot_multiple_inclinations(inclination, 360)
 
-    # plot the entire first quadrant
-    plot_inclination_range(90, 90)
