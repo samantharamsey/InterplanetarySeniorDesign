@@ -5,16 +5,16 @@ Created on Thu Mar 11 15:59:54 2021
 @author: saman
 """
 
-import sympy as sym
+from scipy.optimize import fsolve
 import numpy as np
+from D_potato import RV2COE
 
 
 def inclination():
     ''' calculates inclination using Eqn 5.28 from Tewari '''
     one = np.tan(dec)
     two = np.sin(RA - LAN)
-    three = one/two
-    return np.arctan2(three)
+    return np.arctan2(one, two)
 
 def energy():
     ''' energy equation to find velocity '''
@@ -25,15 +25,18 @@ def semi_ax():
     ''' semi-major axis '''
     en = energy()
     return -mu_saturn/(2*en)
-    
-def ecc_omega():
-    ''' calculates eccentricity and argument of periapse '''
+
+def eqn(var):
     a = semi_ax()
-    # solve simultaneous equations
-    e, w = sym.symbols('e, w')
+    e, w = var
     eqn1 = np.arccos(-1/e) - np.arccos(np.cos(dec)*np.cos(LAN - RA)) - w
     eqn2 = a*(1 - e**2)/(1 - e*np.cos(w)) - r_titan
-    ecc, omega = sym.solve([eqn1, eqn2], (e, w))
+    return (eqn1, eqn2)
+
+def ecc_omega():
+    ''' calculates eccentricity and argument of periapse '''
+    e, w = fsolve(eqn, (1, 1))
+    return e, w
     
 def FPA():
     ''' computes flight path angle '''
@@ -59,7 +62,7 @@ def vel_components():
     vy = vxy*np.cos(phi)
     return vx, vy, vz
     
-def reference_trans(vx, vy, vz):
+def reference_trans():
     ''' converts velocity in saturn reference frame to titan '''
     # components wrt Saturn
     vx, vy, vz = vel_components()
@@ -73,6 +76,14 @@ def reference_trans(vx, vy, vz):
     v_infz = vz - vzt
     return v_infx, v_infy, v_infz
 
+def state():
+    ''' creates state vector '''
+    rx = r_titan*np.sin(LAN)
+    ry = r_titan*np.cos(LAN)
+    rz = 0
+    vx, vy, vz = reference_trans()
+    return np.array([vx, vy, vz, rx, ry, rz])
+
 
 if __name__ == '__main__':
     
@@ -83,11 +94,15 @@ if __name__ == '__main__':
     mu_titan = 0.0225*(3.986*10**5)
     
     # MAnE arrival conditions from CASESMRY output file
-    v_inf = 5.35 # km/s
-    RA    = 60*(np.pi/180) # deg converted to rad
-    dec   = 10*(np.pi/180) # def converted to rad
+    v_inf = 5.0 # km/s
+    RA    =  72.66*(np.pi/180) # deg converted to rad
+    dec   = -11.69*(np.pi/180) # deg converted to rad
     
     # node occurs at Titan intercept - specifies LAN
     LAN = 60*(np.pi/180) # deg converted to rad
+    
+    # do stuff
+    titan_state = state()
+    h, E, n, e, p, a, i, LANt, omegat, nu = RV2COE(mu_titan, titan_state)
     
     
