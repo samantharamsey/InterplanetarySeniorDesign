@@ -7,7 +7,6 @@ Created on Thu Mar 11 15:59:54 2021
 
 
 import numpy as np
-from D_potato import RV2COE
 
 
 def newton_method(x0, step_size, tolerance):
@@ -114,7 +113,82 @@ def state():
     ry = r_titan*np.cos(LAN)
     rz = 0
     vx, vy, vz = reference_trans()
-    return np.array([vx, vy, vz, rx, ry, rz])
+    return np.array([rx, ry, rz, vx, vy, vz])
+
+def RV2COE(mu, state):
+    '''
+    Converts a state vector to the classical orbital elements
+    *** does not include special cases ***
+    Args:
+        mu - gravitational parameter of primary body
+        state - position and velocity as a 6 element array
+    Returns:
+        h_mag - specific angular momentum
+        E - specific mechanical energy
+        n_mag - magnitude of the node vector
+        e_mag - eccentricity
+        p - semiparameter
+        a - semimajor axis
+        i_deg - inclination in radians
+        Omega_deg - longitude of the ascending node in radians
+        omega_deg - argument of perigee in radians
+        true_deg - true anomaly in radians
+    '''
+
+    tol = 1*10**-6
+    K = [0, 0, 1]
+
+    # position vector
+    r = state[:3]
+    r_mag = np.linalg.norm(r)
+
+    # velocity vector
+    v = state[3:]
+    v_mag = np.linalg.norm(v)
+    print(v_mag)
+
+    # specific angular momentum
+    h = np.cross(r, v)
+    h_mag = np.linalg.norm(h)
+
+    # node vector
+    n = np.cross(K, h)
+    n_mag = np.linalg.norm(n)
+
+    # eccentricity
+    e = ((v_mag**2 - (mu/r_mag))*r - np.dot(r, v)*v)/mu
+    e_mag = np.linalg.norm(e)
+
+    # specific energy
+    E = (v_mag**2/2) - (mu/r_mag)
+
+    # semiparameter and semimajor axis depending on orbit type
+    if 1 - tol < e_mag < 1 + tol:
+        p = (h_mag**2 / mu)
+        a = np.inf
+    else:
+        a = -mu/(2*E)
+        p = a*(1 - e_mag**2)
+
+    # inclination
+    i = np.arccos(h[2]/h_mag)
+
+    # longitude of the ascending node
+    Omega = np.arccos(n[0]/n_mag)
+    if n[1] < tol:
+        Omega = 2*np.pi - Omega
+
+    # argument of perigee
+    omega = np.arccos((np.dot(n, e))/(n_mag*e_mag))
+    if e[2] < 0:
+        omega = 2*np.pi - omega
+
+    # true anomaly
+    true = np.arccos(np.dot(e, r)/(e_mag*r_mag))
+    if np.dot(r, v) < 0:
+        true = 2*np.pi - true
+
+    return h_mag, E, n_mag, e_mag, p, a, i, Omega, omega, true
 
 if __name__ == '__main__':
     
@@ -132,8 +206,10 @@ if __name__ == '__main__':
     # node occurs at Titan intercept - specifies LAN
     LAN = 60*(np.pi/180) # deg converted to rad
     
-    # do stuff
-    # titan_state = state()
-    # h, E, n, e, p, a, i, LANt, omegat, nu = RV2COE(mu_titan, titan_state)
-    
+    # newton method to calculate eccentricity
     eccentricity = newton_method(1.5, 10**-5, 10**-6)
+    
+    # do stuff
+    titan_state = state()
+    h, E, n, e, p, a, i, LANt, omegat, nu = RV2COE(mu_titan, titan_state)
+    
