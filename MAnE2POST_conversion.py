@@ -74,7 +74,7 @@ def FPA():
     # eccentricity and argument of periapse
     w = omega()
     e = eccentricity
-    FPA = np.arctan(e*np.sin(w/(1 + e*np.cos(w))))
+    FPA = np.arctan(e*np.sin(w)/(1 + e*np.cos(w)))
     return FPA
     
 def vel_components():
@@ -189,6 +189,7 @@ def RV2COE(mu, state):
         true = 2*np.pi - true
 
     return h_mag, E, n_mag, e_mag, p, a, i, Omega, omega, true
+
 
 if __name__ == '__main__':
     
