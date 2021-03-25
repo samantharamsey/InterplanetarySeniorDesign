@@ -5,11 +5,38 @@ Created on Thu Mar 11 15:59:54 2021
 @author: saman
 """
 
-from scipy.optimize import fsolve
+
 import numpy as np
 from D_potato import RV2COE
 
 
+def newton_method(x0, step_size, tolerance):
+    '''
+    Determines the roots of a non-linear single variable function using 
+    derivative estimation and Taylor Series Expansion
+    Args:
+        x0 - initial condition estimate
+        tolerance - the tolerance for convergence
+        step_size - determines the size of delta x
+    '''
+    f0 = function(x0)
+    residual = abs(f0) 
+    iteration = 1
+    fx = (function(x0 + step_size) - f0) / step_size
+    print('%-13s %-20s %-20s %-20s' 
+          %('Iterations', 'Function Value', 'Root Value', 'Residual'))
+    while residual > tolerance:
+        x1 = x0 + ((0 - f0)/fx)
+        f1 = function(x1)
+        residual = abs(f1)
+        f0 = f1
+        x0 = x1
+        fx = (function(x0 + step_size) - f0) / step_size
+        print('%5.1f %20.10f %20.10f %20.10f' 
+              %(iteration, f1, x1, residual))
+        iteration = iteration + 1
+    return x1
+        
 def inclination():
     ''' calculates inclination using Eqn 5.28 from Tewari '''
     one = np.tan(dec)
@@ -21,34 +48,39 @@ def energy():
     energy = (1/2)*v_inf**2 - mu_saturn/r_titan
     return energy
 
+def velocity():
+    ''' probe velocity at Titan intercept wrt Saturn '''
+    E = energy()
+    vi = np.sqrt(2*abs(E))
+    return vi
+    
 def semi_ax():
     ''' semi-major axis '''
     en = energy()
     return -mu_saturn/(2*en)
 
-def eqn(var):
+def function(e):
     a = semi_ax()
-    e, w = var
-    eqn1 = np.arccos(-1/e) - np.arccos(np.cos(dec)*np.cos(LAN - RA)) - w
-    eqn2 = a*(1 - e**2)/(1 - e*np.cos(w)) - r_titan
-    return (eqn1, eqn2)
+    w = np.arccos(-1/e) - np.arccos(np.cos(dec)*np.cos(LAN - RA))
+    sol = (a*(1 - e**2))/(1 - e*np.cos(w)) + r_titan
+    return sol
 
-def ecc_omega():
-    ''' calculates eccentricity and argument of periapse '''
-    e, w = fsolve(eqn, (1, 1))
-    return e, w
-    
+def omega():
+    e = eccentricity
+    w = w = np.arccos(-1/e) - np.arccos(np.cos(dec)*np.cos(LAN - RA))
+    return w
+
 def FPA():
     ''' computes flight path angle '''
     # eccentricity and argument of periapse
-    e, w = ecc_omega()
+    w = omega()
+    e = eccentricity
     FPA = np.arctan(e*np.sin(w/(1 + e*np.cos(w))))
     return FPA
     
 def vel_components():
     ''' breaks up vi into its vector components '''
-    ############ VI = ?????
-    vi = 1
+    vi = velocity()
     # break vi into the z and xy plane components
     i = inclination()
     vz = np.sin(i)*vi
@@ -84,7 +116,6 @@ def state():
     vx, vy, vz = reference_trans()
     return np.array([vx, vy, vz, rx, ry, rz])
 
-
 if __name__ == '__main__':
     
     # define some constants
@@ -102,7 +133,7 @@ if __name__ == '__main__':
     LAN = 60*(np.pi/180) # deg converted to rad
     
     # do stuff
-    titan_state = state()
-    h, E, n, e, p, a, i, LANt, omegat, nu = RV2COE(mu_titan, titan_state)
+    # titan_state = state()
+    # h, E, n, e, p, a, i, LANt, omegat, nu = RV2COE(mu_titan, titan_state)
     
-    
+    eccentricity = newton_method(1.5, 10**-5, 10**-6)
