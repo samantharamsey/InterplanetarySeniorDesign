@@ -44,19 +44,19 @@ def inclination():
 
 def energy():
     ''' energy equation to find velocity '''
-    energy = (1/2)*v_inf**2 - mu_saturn/r_titan
+    energy = (1/2)*v_inf**2 + mu_saturn/r_titan
     return energy
 
 def velocity():
     ''' probe velocity at Titan intercept wrt Saturn '''
     E = energy()
-    vi = np.sqrt(2*abs(E))
+    vi = np.sqrt(2*E)
     return vi
     
 def semi_ax():
     ''' semi-major axis '''
-    en = energy()
-    return -mu_saturn/(2*en)
+    en = (1/2)*v_inf**2
+    return mu_saturn/(2*en)
 
 def function(e):
     a = semi_ax()
@@ -98,8 +98,8 @@ def reference_trans():
     # components wrt Saturn
     vx, vy, vz = vel_components()
     # Titan orbital velocity components
-    vxt = v_titan*np.sin(LAN)
-    vyt = v_titan*np.cos(LAN)
+    vxt = v_titan*np.cos(LAN)
+    vyt = v_titan*np.sin(LAN)
     vzt = 0
     # relative velocity to Titan
     v_infx = vx - vxt
@@ -109,8 +109,8 @@ def reference_trans():
 
 def state():
     ''' creates state vector '''
-    rx = r_titan*np.sin(LAN)
-    ry = r_titan*np.cos(LAN)
+    rx = alt_titan*np.sin(LAN)
+    ry = alt_titan*np.cos(LAN)
     rz = 0
     vx, vy, vz = reference_trans()
     return np.array([rx, ry, rz, vx, vy, vz])
@@ -145,7 +145,6 @@ def RV2COE(mu, state):
     # velocity vector
     v = state[3:]
     v_mag = np.linalg.norm(v)
-    print(v_mag)
 
     # specific angular momentum
     h = np.cross(r, v)
@@ -198,6 +197,7 @@ if __name__ == '__main__':
     r_titan = 1221865 # Titan's orbital radius in km
     mu_saturn = 37931187.9
     mu_titan = 0.0225*(3.986*10**5)
+    alt_titan = 2575 + 1000
     
     # MAnE arrival conditions from CASESMRY output file
     v_inf = 5.0 # km/s
@@ -213,4 +213,12 @@ if __name__ == '__main__':
     # do stuff
     titan_state = state()
     h, E, n, e, p, a, i, LANt, omegat, nu = RV2COE(mu_titan, titan_state)
+    
+    # position vector
+    r = titan_state[:3]
+    r_mag = np.linalg.norm(r)
+
+    # velocity vector
+    v = titan_state[3:]
+    v_mag = np.linalg.norm(v)
     
