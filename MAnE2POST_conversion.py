@@ -7,6 +7,7 @@ Created on Thu Mar 11 15:59:54 2021
 
 
 import numpy as np
+import mpmath as mp
 
 
 def newton_method(x0, step_size, tolerance):
@@ -38,8 +39,8 @@ def newton_method(x0, step_size, tolerance):
         
 def inclination():
     ''' calculates inclination using Eqn 5.28 from Tewari '''
-    one = np.tan(dec)
-    two = np.sin(RA - LAN)
+    one = np.tan(sat_dec)
+    two = np.sin(sat_RA - sat_LAN)
     return np.arctan2(one, two)
 
 def energy():
@@ -60,20 +61,20 @@ def semi_ax():
 
 def function(e):
     a = semi_ax()
-    w = np.arccos(-1/e) - np.arccos(np.cos(dec)*np.cos(LAN - RA))
+    w = np.arccos(-1/e) - np.arccos(np.cos(sat_dec)*np.cos(sat_LAN - sat_RA))
     sol = (a*(1 - e**2))/(1 - e*np.cos(w)) + r_titan
     return sol
 
 def omega():
-    e = eccentricity
-    w = w = np.arccos(-1/e) - np.arccos(np.cos(dec)*np.cos(LAN - RA))
+    e = sat_e
+    w = w = np.arccos(-1/e) - np.arccos(np.cos(sat_dec)*np.cos(sat_LAN - sat_RA))
     return w
 
 def FPA():
     ''' computes flight path angle '''
     # eccentricity and argument of periapse
     w = omega()
-    e = eccentricity
+    e = sat_e
     FPA = np.arctan(e*np.sin(w)/(1 + e*np.cos(w)))
     return FPA
     
@@ -86,7 +87,7 @@ def vel_components():
     vxy = np.cos(i)*vi
     # flight path angle
     gamma = FPA()
-    theta = np.pi/2 - LAN + gamma
+    theta = np.pi/2 - sat_LAN + gamma
     phi = np.pi/2 - theta
     # use phi to break into x and y components
     vx = vxy*np.sin(phi)
@@ -98,8 +99,8 @@ def reference_trans():
     # components wrt Saturn
     vx, vy, vz = vel_components()
     # Titan orbital velocity components
-    vxt = v_titan*np.cos(LAN)
-    vyt = v_titan*np.sin(LAN)
+    vxt = v_titan*np.cos(sat_LAN)
+    vyt = v_titan*np.sin(sat_LAN)
     vzt = 0
     # relative velocity to Titan
     v_infx = vx - vxt
@@ -107,118 +108,52 @@ def reference_trans():
     v_infz = vz - vzt
     return v_infx, v_infy, v_infz
 
-def state():
-    ''' creates state vector '''
-    rx = alt_titan*np.sin(LAN)
-    ry = alt_titan*np.cos(LAN)
-    rz = 0
+def COE(rp, az):
+    ''' calculate COE wrt Titan '''
     vx, vy, vz = reference_trans()
-    return np.array([rx, ry, rz, vx, vy, vz])
-
-def RV2COE(mu, state):
-    '''
-    Converts a state vector to the classical orbital elements
-    *** does not include special cases ***
-    Args:
-        mu - gravitational parameter of primary body
-        state - position and velocity as a 6 element array
-    Returns:
-        h_mag - specific angular momentum
-        E - specific mechanical energy
-        n_mag - magnitude of the node vector
-        e_mag - eccentricity
-        p - semiparameter
-        a - semimajor axis
-        i_deg - inclination in radians
-        Omega_deg - longitude of the ascending node in radians
-        omega_deg - argument of perigee in radians
-        true_deg - true anomaly in radians
-    '''
-
-    tol = 1*10**-6
-    K = [0, 0, 1]
-
-    # position vector
-    r = state[:3]
-    r_mag = np.linalg.norm(r)
-
-    # velocity vector
-    v = state[3:]
-    v_mag = np.linalg.norm(v)
-
-    # specific angular momentum
-    h = np.cross(r, v)
-    h_mag = np.linalg.norm(h)
-
-    # node vector
-    n = np.cross(K, h)
-    n_mag = np.linalg.norm(n)
-
-    # eccentricity
-    e = ((v_mag**2 - (mu/r_mag))*r - np.dot(r, v)*v)/mu
-    e_mag = np.linalg.norm(e)
-
-    # specific energy
-    E = (v_mag**2/2) - (mu/r_mag)
-
-    # semiparameter and semimajor axis depending on orbit type
-    if 1 - tol < e_mag < 1 + tol:
-        p = (h_mag**2 / mu)
-        a = np.inf
-    else:
-        a = -mu/(2*E)
-        p = a*(1 - e_mag**2)
-
-    # inclination
-    i = np.arccos(h[2]/h_mag)
-
-    # longitude of the ascending node
-    Omega = np.arccos(n[0]/n_mag)
-    if n[1] < tol:
-        Omega = 2*np.pi - Omega
-
-    # argument of perigee
-    omega = np.arccos((np.dot(n, e))/(n_mag*e_mag))
-    if e[2] < 0:
-        omega = 2*np.pi - omega
-
-    # true anomaly
-    true = np.arccos(np.dot(e, r)/(e_mag*r_mag))
-    if np.dot(r, v) < 0:
-        true = 2*np.pi - true
-
-    return h_mag, E, n_mag, e_mag, p, a, i, Omega, omega, true
+    vmag = np.sqrt((vx**2) + (vy**2) + (vz**2))
+    E = (vmag**2/2)
+    a = -mu_titan/(2*E)
+    e = (-rp/a) + 1
+    vxy = np.sqrt((vx**2) + (vy**2))
+    dec = abs(np.arctan(vz/vxy))
+    i = np.arccos(np.cos(dec)*np.sin(az))
+    RA = np.arctan(vy/vx)
+    LAN = RA - np.arcsin(np.tan(dec)*(np.cos(i)/np.sin(i)))
+    w = np.arccos(-1/e) - np.arccos(np.cos(dec)*np.cos(LAN - RA))
+    return E, a, e, dec, i, RA, LAN, w
 
 
 if __name__ == '__main__':
     
+    # inputs
+    alt = 300 # km
+    azimuth = np.pi/2
+    
     # define some constants
-    v_titan = 5.57 # Titan's orbital velocity in km/s
-    r_titan = 1221865 # Titan's orbital radius in km
+    v_titan   = 5.57    # Titan's orbital velocity in km/s
+    r_titan   = 1221865 # Titan's orbital radius in km
     mu_saturn = 37931187.9
-    mu_titan = 0.0225*(3.986*10**5)
-    alt_titan = 2575 + 1000
+    mu_titan  = 0.0225*(3.986*10**5)
+    alt_titan = 2575 + alt
     
     # MAnE arrival conditions from CASESMRY output file
-    v_inf = 5.0 # km/s
-    RA    =  72.66*(np.pi/180) # deg converted to rad
-    dec   = -11.69*(np.pi/180) # deg converted to rad
+    v_inf   =   5.0              # km/s
+    sat_RA  =  72.66*(np.pi/180) # deg converted to rad
+    sat_dec = -11.69*(np.pi/180) # deg converted to rad
     
     # node occurs at Titan intercept - specifies LAN
-    LAN = 60*(np.pi/180) # deg converted to rad
+    sat_LAN = 60*(np.pi/180) # deg converted to rad
     
-    # newton method to calculate eccentricity
-    eccentricity = newton_method(1.5, 10**-5, 10**-6)
+    # newton method to calculate eccentricity wrt Saturn
+    sat_e = newton_method(1.5, 10**-5, 10**-6)
     
-    # do stuff
-    titan_state = state()
-    h, E, n, e, p, a, i, LANt, omegat, nu = RV2COE(mu_titan, titan_state)
+    # calculate the orbital elements wrt Titan
+    E, a, e, dec, i, RA, LAN, w = COE(alt_titan, azimuth)
     
-    # position vector
-    r = titan_state[:3]
-    r_mag = np.linalg.norm(r)
-
-    # velocity vector
-    v = titan_state[3:]
-    v_mag = np.linalg.norm(v)
+    
+    
+    
+    
+    
     
