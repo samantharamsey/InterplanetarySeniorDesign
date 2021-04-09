@@ -126,16 +126,21 @@ def COE(rp, az):
 
 if __name__ == '__main__':
     
-    # inputs
-    alt = 300 # km
-    azimuth = np.pi/2
     
+    ################################ CONSTANTS ################################
+
     # define some constants
     v_titan   = 5.57    # Titan's orbital velocity in km/s
     r_titan   = 1221865 # Titan's orbital radius in km
     mu_saturn = 37931187.9
     mu_titan  = 0.0225*(3.986*10**5)
-    alt_titan = 2575 + alt
+    
+    
+    ################################# INPUTS #################################
+    
+    alt       = 300         # km
+    azimuth   = np.pi/2     # radians
+    alt_titan = 2575 + alt  # km
     
     # MAnE arrival conditions from CASESMRY output file
     v_inf   =   5.0              # km/s
@@ -144,6 +149,9 @@ if __name__ == '__main__':
     
     # node occurs at Titan intercept - specifies LAN
     sat_LAN = 60*(np.pi/180) # deg converted to rad
+    
+    
+    ############################## CALCULATIONS ###############################
     
     # newton method to calculate eccentricity wrt Saturn
     sat_e = newton_method(1.5, 10**-5, 10**-6)
